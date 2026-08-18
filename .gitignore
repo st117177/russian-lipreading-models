@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+
+# Local datasets and generated media
+ru_dataset/
+raw_videos/
+raw_video_chunks/
+selected_clips*/
+mouth_crops*/
+clips/
+*.mp4
+*.mov
+*.avi
+*.mkv
+*.webm
+*.wav
+*.mp3
+
+# Archives and model checkpoints
+*.zip
+*.pt
+*.pth
+*.ckpt
+
+# Generated logs/reports
+*.log
+padded_bad_files.txt
+padded_duration_mismatches.txt
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/
