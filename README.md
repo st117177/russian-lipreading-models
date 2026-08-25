@@ -36,7 +36,13 @@ data/         small metadata files, not full video datasets
 
 ## Current Baseline
 
-The draft Colab notebook is:
+The recommended clean Colab notebook is:
+
+```text
+notebooks/lipreading_baseline_sem4_clean.ipynb
+```
+
+The original exploratory draft is kept separately:
 
 ```text
 notebooks/lipreading_baseline_sem4_draft.ipynb
@@ -57,9 +63,17 @@ CSV labels
 
 The first baseline showed that a simple 3D-CNN can collapse to predicting the most frequent class. A class-weighted loss was tested as a first fix for class imbalance, but more work is needed.
 
+## How to Run the Baseline
+
+1. Upload `colab_lipreading_dataset.zip` to Google Drive.
+2. Open `notebooks/lipreading_baseline_sem4_clean.ipynb` in Google Colab.
+3. Enable GPU runtime.
+4. Run notebook cells from top to bottom.
+
+The notebook restores the dataset archive from Google Drive into Colab temporary storage and trains a simple 3D-CNN baseline.
+
 ## Next Steps
 
-- Clean up the Colab notebook.
 - Replace or exclude low-quality speakers.
 - Improve class balance.
 - Add balanced sampling or oversampling.
