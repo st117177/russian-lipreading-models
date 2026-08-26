@@ -36,12 +36,12 @@ video + transcript
 
 Использовать нужно padded-версию:
 
-- `ru_dataset/selected_clips_padded/`
-- `ru_dataset/selected_labels_padded.csv`
-- `ru_dataset/selected_labels_padded_clean.csv`
-- `ru_dataset/mouth_crops_padded/`
-- `ru_dataset/mouth_crops_padded_labels.csv`
-- `ru_dataset/ml_splits_mouth_crops_padded_no_spk09_10/speaker_top10/`
+- `ru_dataset/01_intermediate_clips/selected_clips_padded/`
+- `ru_dataset/01_intermediate_clips/selected_labels_padded.csv`
+- `ru_dataset/01_intermediate_clips/selected_labels_padded_clean.csv`
+- `ru_dataset/02_model_inputs/mouth_crops_padded/`
+- `ru_dataset/02_model_inputs/mouth_crops_padded_labels.csv`
+- `ru_dataset/03_splits/ml_splits_mouth_crops_padded_clean_manual_no_spk09_10/speaker_top10/`
 
 Старые папки без `_padded` оставлены только для сравнения: там клипы были нарезаны слишком коротко.
 
@@ -160,12 +160,12 @@ Linear(64, num_classes)
 
 - старый PDF-отчет: `Tarasova_lip_read_rus_dataset_report (3) (1).pdf`
 - описание пайплайна: `README_PIPELINE.md`
-- описание текущего датасета: `ru_dataset/README.md`
-- quality report: `ru_dataset/quality_padded/quality_report.md`
+- описание текущего датасета: `semester4_coursework/dataset_local/ru_dataset/README.md`
+- quality report: `ru_dataset/04_quality_reports/quality_padded/quality_report.md`
 - картинки для проверки качества:
-  - `ru_dataset/quality_padded/padded_timing_compare.jpg`
-  - `ru_dataset/quality_padded/spk09_spk10_contact_sheet.jpg`
-  - `ru_dataset/quality_padded/flagged_contact_sheet.jpg`
-- архив для Colab: `ru_dataset/colab_lipreading_dataset.zip`
+  - `ru_dataset/04_quality_reports/quality_padded/padded_timing_compare.jpg`
+  - `ru_dataset/04_quality_reports/quality_padded/spk09_spk10_contact_sheet.jpg`
+  - `ru_dataset/04_quality_reports/quality_padded/flagged_contact_sheet.jpg`
+- архив для Colab: `ru_dataset/05_colab_package/colab_lipreading_dataset.zip`
 
 Полного нового отчета для 4 семестра пока нет. Этот файл является кратким статус-репортом.
