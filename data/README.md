@@ -1,23 +1,29 @@
-# Data
+# Data Metadata
 
-This folder is for small metadata files only.
+This folder contains small metadata files used to reproduce the semester 4 dataset
+pipeline.
 
-Do not commit generated video datasets here. Keep full datasets and archives outside GitHub, for example on Google Drive.
+Current contents:
 
-Current local dataset archive:
+- `candidate_videos.csv` - candidate YouTube videos grouped by speaker.
+
+The generated video dataset is stored outside this GitHub repository because it
+contains downloaded videos, generated clips, mouth crops, and Colab archives.
+
+Local dataset location used during development:
 
 ```text
-semester4_coursework/dataset_local/ru_dataset/05_colab_package/colab_lipreading_dataset.zip
+C:\Users\Sobaka\Desktop\Lip-reading-demo-dataset\semester4_coursework\dataset_local\ru_dataset
 ```
 
-Recommended local training split:
+Current local training split:
 
 ```text
-semester4_coursework/dataset_local/ru_dataset/03_splits/ml_splits_mouth_crops_padded_clean_manual_no_spk09_10/speaker_top10/
+03_splits/ml_splits_mouth_crops_padded_clean_manual_no_spk09_10/speaker_top10/
 ```
 
-Recommended local video root for those split CSV files:
+Current local video root for those split CSV files:
 
 ```text
-semester4_coursework/dataset_local/ru_dataset/02_model_inputs/
+02_model_inputs/
 ```
