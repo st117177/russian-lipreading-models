@@ -111,6 +111,12 @@ The recommended clean Colab notebook is:
 notebooks/lipreading_baseline_sem4_clean.ipynb
 ```
 
+The Kaggle version is:
+
+```text
+notebooks/lipreading_baseline_sem4_kaggle.ipynb
+```
+
 The original exploratory draft is kept separately:
 
 ```text
@@ -138,12 +144,24 @@ semi-automatic filtering of bad mouth crops and rebuilding the baseline split.
 
 ## How to Run the Baseline
 
-1. Upload `colab_lipreading_dataset.zip` to Google Drive.
+### Colab
+
+1. Upload `kaggle_lipreading_dataset.zip` or `colab_lipreading_dataset.zip` to Google Drive.
 2. Open `notebooks/lipreading_baseline_sem4_clean.ipynb` in Google Colab.
 3. Enable GPU runtime.
 4. Run notebook cells from top to bottom.
 
 The notebook restores the dataset archive from Google Drive into Colab temporary storage and trains a simple 3D-CNN baseline.
+
+### Kaggle
+
+1. Upload `kaggle_lipreading_dataset.zip` as a Kaggle Dataset.
+2. Create a Kaggle Notebook and add this dataset through **Add Input**.
+3. Open/run `notebooks/lipreading_baseline_sem4_kaggle.ipynb`.
+4. Enable GPU accelerator.
+
+The Kaggle notebook reads data from `/kaggle/input` and saves checkpoints to
+`/kaggle/working/lipreading_sem4`.
 
 ## Next Steps
 
