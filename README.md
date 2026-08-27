@@ -136,7 +136,24 @@ CSV labels
 -> train/validation loop
 ```
 
-The first baseline showed that a simple 3D-CNN can collapse to predicting the most frequent class. A class-weighted loss was tested as a first fix for class imbalance, but more work is needed.
+The first baseline showed that a simple 3D-CNN can collapse to predicting the most frequent class. A class-weighted loss and balanced sampling were tested as first fixes for class imbalance, but the model still remained weak.
+
+The current notebooks therefore add a stronger temporal baseline:
+
+```text
+mouth crop video
+-> frame-level CNN encoder
+-> BiGRU temporal encoder
+-> word classifier
+```
+
+The notebooks also compare RGB input with grayscale input. Grayscale is tested as a possible optimization because lip-reading mostly depends on mouth shape and motion rather than color.
+
+After the speaker-based experiments, the notebooks include a random-split sanity
+check for the grayscale CNN+BiGRU model. This is not the main evaluation metric:
+it is used to diagnose whether the model can learn the task when speakers are
+mixed across train/validation/test. The speaker-based split remains the honest
+generalization test.
 
 Visual inspection of `mouth_crops_padded/` also showed that some automatically
 created mouth crops contain wrong regions. The next dataset step is manual or
@@ -168,7 +185,9 @@ The Kaggle notebook reads data from `/kaggle/input` and saves checkpoints to
 - Replace or exclude low-quality speakers.
 - Improve class balance.
 - Add balanced sampling or oversampling.
-- Train a stronger baseline.
+- Train and compare the CNN+BiGRU temporal baseline.
+- Compare RGB and grayscale input.
+- Run random-split sanity check to separate model/data problems from unseen-speaker generalization problems.
 - Add plots for loss/accuracy.
 - Add confusion matrix and per-class accuracy.
 - Write the semester 4 report.

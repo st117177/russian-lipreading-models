@@ -133,9 +133,38 @@ Linear(64, num_classes)
 
 - обычный loss дал validation accuracy около 30%, но это оказалось misleading;
 - модель почти всегда предсказывала самый частый класс `есть`;
-- weighted loss сделал оценку честнее, но качество осталось около случайного уровня для 10 классов.
+- weighted loss и balanced sampler сделали оценку честнее, но качество осталось около случайного уровня для 10 классов.
 
 Вывод: пайплайн обучения работает, но датасет и модель нужно улучшать.
+
+Следующий добавленный baseline:
+
+```text
+mouth crop video
+-> RGB или grayscale frames
+-> frame-level CNN
+-> BiGRU по последовательности кадров
+-> Linear classifier
+-> word class
+```
+
+Зачем он нужен:
+
+- `Simple3DCNN` проверяет технический пайплайн, но плохо моделирует порядок движений губ;
+- `FrameCNN+BiGRU` отдельно извлекает признаки кадра и затем анализирует временную последовательность;
+- grayscale-режим проверяется как оптимизация: меньше входных данных и меньше зависимости от цвета/освещения.
+
+Промежуточные результаты на speaker-based split:
+
+- `FrameCNN+BiGRU RGB`: best validation accuracy около `0.295`;
+- `FrameCNN+BiGRU grayscale`: best validation accuracy около `0.314`;
+- grayscale немного лучше RGB, но обе модели всё ещё в основном предсказывают частое слово, поэтому проблему нельзя считать решённой.
+
+После этого в notebook добавлен random-split sanity check для `FrameCNN+BiGRU grayscale`.
+Это не финальная честная метрика, а диагностический эксперимент:
+
+- если random split заметно лучше speaker-based split, значит главная проблема в обобщении на новых спикеров;
+- если random split тоже слабый, нужно проверять качество разметки, alignment и mouth crops.
 
 ## Что еще нужно сделать для курсовой
 
@@ -145,13 +174,14 @@ Linear(64, num_classes)
 2. Обновить README, чтобы там были актуальные padded-файлы и Colab-инструкция.
 3. Добрать/заменить плохих спикеров `spk09`, `spk10`.
 4. Сделать balanced split или balanced sampler.
-5. Обучить baseline заново и построить графики loss/accuracy.
-6. Добавить confusion matrix и per-class accuracy.
-7. Написать отчет: датасет, пайплайн, модель, эксперименты, проблемы, выводы.
+5. Обучить `FrameCNN+BiGRU` на RGB и grayscale input.
+6. Запустить random-split sanity check.
+7. Построить графики loss/accuracy, confusion matrix и per-class accuracy.
+8. Написать отчет: датасет, пайплайн, модель, эксперименты, проблемы, выводы.
 
 Расширенный план:
 
-1. Попробовать более сильную temporal model: CNN+GRU/LSTM или 3D-CNN+Transformer.
+1. Если `FrameCNN+BiGRU` тоже слабая, попробовать CNN+TCN.
 2. Увеличить датасет до более ровного количества клипов на слово и спикера.
 3. Сравнить full-frame clips и mouth crops.
 4. Добавить ручной quality review для спорных клипов.
