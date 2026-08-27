@@ -166,6 +166,23 @@ mouth crop video
 - если random split заметно лучше speaker-based split, значит главная проблема в обобщении на новых спикеров;
 - если random split тоже слабый, нужно проверять качество разметки, alignment и mouth crops.
 
+Результат random-split sanity check:
+
+- `FrameCNN+BiGRU grayscale random split`: best validation accuracy около `0.25`;
+- random split не стал лучше speaker-based split, значит проблема не только в unseen speakers.
+
+После этого добавлен model-based clip audit:
+
+```text
+trained grayscale CNN+BiGRU
+-> per-clip loss and prediction
+-> high-loss CSV files
+-> wrong-prediction CSV files
+-> contact sheets for quick visual review
+```
+
+Идея: не чистить руками весь датасет, а сначала посмотреть 30-50 самых подозрительных клипов.
+
 ## Что еще нужно сделать для курсовой
 
 Минимальный план:
@@ -176,8 +193,9 @@ mouth crop video
 4. Сделать balanced split или balanced sampler.
 5. Обучить `FrameCNN+BiGRU` на RGB и grayscale input.
 6. Запустить random-split sanity check.
-7. Построить графики loss/accuracy, confusion matrix и per-class accuracy.
-8. Написать отчет: датасет, пайплайн, модель, эксперименты, проблемы, выводы.
+7. Запустить model-based clip audit и проверить contact sheets.
+8. Построить графики loss/accuracy, confusion matrix и per-class accuracy.
+9. Написать отчет: датасет, пайплайн, модель, эксперименты, проблемы, выводы.
 
 Расширенный план:
 

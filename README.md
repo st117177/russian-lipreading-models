@@ -155,6 +155,11 @@ it is used to diagnose whether the model can learn the task when speakers are
 mixed across train/validation/test. The speaker-based split remains the honest
 generalization test.
 
+The notebooks also include a model-based clip audit. It scores clips with the
+trained grayscale CNN+BiGRU model and exports high-loss / wrong-prediction CSV
+files plus contact-sheet images. This is used to inspect only suspicious clips
+instead of manually reviewing the whole dataset.
+
 Visual inspection of `mouth_crops_padded/` also showed that some automatically
 created mouth crops contain wrong regions. The next dataset step is manual or
 semi-automatic filtering of bad mouth crops and rebuilding the baseline split.
@@ -188,6 +193,7 @@ The Kaggle notebook reads data from `/kaggle/input` and saves checkpoints to
 - Train and compare the CNN+BiGRU temporal baseline.
 - Compare RGB and grayscale input.
 - Run random-split sanity check to separate model/data problems from unseen-speaker generalization problems.
+- Run model-based clip audit and inspect contact sheets for bad crops or alignment errors.
 - Add plots for loss/accuracy.
 - Add confusion matrix and per-class accuracy.
 - Write the semester 4 report.
