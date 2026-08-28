@@ -226,6 +226,17 @@ and selects the best checkpoint by validation macro-F1. It saves the checkpoint,
 history, per-class report, validation predictions, curves, and confusion matrix
 to Google Drive. The test split is deliberately not evaluated.
 
+The next controlled transfer-learning experiment is:
+
+```text
+notebooks/lipreading_frozen_resnet18_bigru_colab.ipynb
+```
+
+It extracts ImageNet-pretrained ResNet18 frame features once, caches them on
+Google Drive, and trains only a BiGRU word classifier. The frozen encoder is kept
+in evaluation mode, grayscale frames are repeated to three channels and
+ImageNet-normalized, and the test split remains unused.
+
 1. Upload `kaggle_lipreading_dataset.zip` or `colab_lipreading_dataset.zip` to Google Drive.
 2. Open `notebooks/lipreading_baseline_sem4_clean.ipynb` in Google Colab.
 3. Enable GPU runtime.

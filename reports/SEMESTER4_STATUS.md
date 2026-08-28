@@ -276,6 +276,36 @@ train subset из 16-32 клипов
 спикера `spk06`: максимум 30 эпох, AdamW, early stopping с patience 7, выбор
 checkpoint по validation macro-F1. Test split в этом эксперименте не используется.
 
+Контролируемый `FrameCNN+BiGRU grayscale` был запущен в Colab. Результат:
+
+- early stopping после 8 эпох;
+- лучшая эпоха: 1;
+- validation accuracy: `0.2952`;
+- validation macro-F1: `0.0736`;
+- validation balanced accuracy: `0.1106`;
+- majority-class baseline (`есть`): `0.3048`;
+- модель предсказала только 3 класса из 10;
+- `есть` было предсказано для 89 из 105 validation-клипов;
+- test split не использовался.
+
+Вывод: компактная модель может запоминать маленький subset, но почти не учится
+обобщать на полном speaker-based split и в основном схлопывается в частый класс.
+
+Следующий контролируемый эксперимент вынесен в notebook
+`notebooks/lipreading_frozen_resnet18_bigru_colab.ipynb`:
+
+```text
+grayscale frames
+-> repeat to RGB + ImageNet normalization
+-> frozen ImageNet-pretrained ResNet18
+-> cached 24 x 512 frame features
+-> trainable BiGRU classifier
+```
+
+Frozen features извлекаются один раз и сохраняются на Google Drive. Это делает
+эксперимент быстрее и проверяет, помогают ли готовые visual features без обучения
+11.7M параметров ResNet18 на маленьком датасете. Test split не используется.
+
 После этого добавлен эксперимент `Frozen ImageNet ResNet18+BiGRU`:
 
 ```text
