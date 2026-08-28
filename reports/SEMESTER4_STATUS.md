@@ -231,6 +231,30 @@ train subset из 16-32 клипов
 - если tiny overfit успешен, только после этого имеет смысл продолжать сравнение
   `FrameCNN+BiGRU`, `ResNet18+BiGRU`, pretrained/frozen encoder и augmentation.
 
+Первый запуск этого теста в Colab дал:
+
+- 16 клипов: best memorization accuracy `0.875` (14 из 16);
+- 32 клипа: best memorization accuracy `0.65625` (21 из 32);
+- loss уменьшался, то есть forward/backward/optimizer работают, но формальный
+  порог `0.90` не был достигнут.
+
+После этого tiny-overfit блок был сделан более строгим и воспроизводимым:
+
+- фиксируются random seeds Python, NumPy и PyTorch;
+- 16/32 видео один раз декодируются и кэшируются в RAM;
+- `DataLoader` работает с `num_workers=0`;
+- отдельная tiny-модель использует `GroupNorm` вместо нестабильного на маленьком
+  batch `BatchNorm`;
+- dropout, augmentation и weight decay отключены;
+- обучение идет до 150 эпох с early stopping при 100%;
+- проверяются пути, соответствие `word -> class_id -> word`, конфликтующие
+  дубликаты тензоров, нулевое движение и нулевая дисперсия пикселей;
+- сохраняются history CSV, errors CSV и первые/средние/последние кадры ошибок.
+
+Новые критерии перехода: минимум `0.95` на 16 клипах и минимум `0.90` на
+32 клипах. До прохождения обоих критериев тяжелые model experiments запускать
+не нужно.
+
 После этого добавлен эксперимент `Frozen ImageNet ResNet18+BiGRU`:
 
 ```text
@@ -248,21 +272,21 @@ LRW-pretrained checkpoint.
 
 Минимальный план:
 
-1. Привести Colab notebook в чистый вид и сохранить в репозиторий.
-2. Обновить README, чтобы там были актуальные padded-файлы и Colab-инструкция.
-3. Запустить `Tiny Overfit Test` на 16 и 32 клипах.
-4. Если tiny overfit не сработает, остановить архитектурные эксперименты и
-   проверить labels, загрузку видео, target ids, loss, learning rate и training loop.
-5. Если tiny overfit сработает, продолжить full training на speaker-based split.
-6. Добрать/заменить плохих спикеров `spk09`, `spk10` уже по результатам диагностики.
-7. Сделать balanced split или balanced sampler.
-8. Обучить `FrameCNN+BiGRU` на RGB и grayscale input.
-9. Запустить random-split sanity check.
-10. Запустить model-based clip audit и проверить contact sheets.
-11. Обучить LRW-style `ResNet18+BiGRU` baseline.
-12. Сравнить ResNet18 с нуля и frozen ImageNet-pretrained ResNet18.
-13. Построить графики loss/accuracy, confusion matrix и per-class accuracy.
-14. Написать отчет: датасет, пайплайн, модель, эксперименты, проблемы, выводы.
+1. Запустить стабильный `Tiny Overfit Test` на 16 и 32 клипах.
+2. Если хотя бы один тест не пройдет, изучить автоматически сохраненные ошибки
+   и не запускать тяжелые модели.
+3. После `PIPELINE PASS` обучать все модели по одному протоколу: grayscale,
+   speaker split, 30 эпох, AdamW, early stopping, выбор по validation macro-F1.
+4. Сравнить `FrameCNN+BiGRU`, frozen ImageNet `ResNet18+BiGRU`, затем одну
+   LRW-style модель с temporal backend.
+5. Считать accuracy, macro-F1, balanced accuracy, per-class recall, prediction
+   distribution и confusion matrix.
+6. Зафиксировать текущие 955 клипов как dataset v1.
+7. Для dataset v2 добавить 2-4 новых спикера и добрать прежде всего слова
+   `человек`, `потом`, `время`, `просто`; данные `spk04` больше не увеличивать.
+8. Повторить две лучшие модели на v1/v2 с тремя random seeds и один раз оценить
+   выбранную модель на test.
+9. Написать отчет: датасет, pipeline, диагностика, модели, эксперименты и выводы.
 
 Расширенный план:
 

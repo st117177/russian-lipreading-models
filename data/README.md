@@ -6,6 +6,8 @@ pipeline.
 Current contents:
 
 - `candidate_videos.csv` - candidate YouTube videos grouped by speaker.
+- `DATASET_V1.md` - frozen statistics and evaluation rules for the current
+  955-clip coursework baseline.
 
 The generated video dataset is stored outside this GitHub repository because it
 contains downloaded videos, generated clips, mouth crops, and Colab archives.

@@ -167,12 +167,17 @@ small memorization diagnostic:
 Tiny Overfit Test
 ```
 
-It trains the `FrameCNN+BiGRU` grayscale model only on 16 and 32 training clips.
-The expected result is high training accuracy on this tiny subset. If the model
-cannot overfit such a small sample, the next step is to debug labels, video
-loading, target ids, loss, learning rate, or the training loop. If it can overfit,
-then the main problem is more likely dataset size, quality, balance, or
-generalization to unseen speakers.
+The first run reached 87.5% memorization accuracy on 16 clips and 65.6% on
+32 clips. The current stable version fixes all random seeds, decodes the clips
+once into memory, uses `num_workers=0`, and replaces batch-dependent BatchNorm
+with GroupNorm in a separate diagnostic model. It trains for up to 150 epochs
+and stops at 100% memorization.
+
+The diagnostic also checks path/label round trips, conflicting duplicate
+tensors, zero-motion clips, and zero-variance clips. It saves training history,
+remaining errors, and first/middle/last-frame images for those errors. The gates
+are 95% for 16 clips and 90% for 32 clips. Full-dataset model experiments should
+continue only after both gates pass.
 
 The current next model step is an LRW-style baseline:
 
@@ -208,6 +213,8 @@ semi-automatic filtering of bad mouth crops and rebuilding the baseline split.
 The notebook restores the dataset archive from Google Drive into Colab temporary
 storage. After defining `FrameCNN+BiGRU`, first run the `Tiny Overfit Test`
 sections to check whether the model can memorize a very small training subset.
+Stop at `Tiny Overfit Decision Gate` if it prints `PIPELINE CHECK`; the heavier
+model sections below are intentionally gated by this result.
 
 ### Kaggle
 
@@ -221,18 +228,11 @@ The Kaggle notebook reads data from `/kaggle/input` and saves checkpoints to
 
 ## Next Steps
 
-- Run the `Tiny Overfit Test` on 16 and 32 clips.
-- If tiny overfit fails, debug data loading, labels, target ids, loss, learning rate, and training loop before changing architectures.
-- If tiny overfit succeeds, continue with full speaker-based training and treat low validation accuracy as a dataset/generalization problem.
-- Replace or exclude low-quality speakers.
-- Improve class balance.
-- Add balanced sampling or oversampling.
-- Train and compare the CNN+BiGRU temporal baseline.
-- Compare RGB and grayscale input.
-- Run random-split sanity check to separate model/data problems from unseen-speaker generalization problems.
-- Run model-based clip audit and inspect contact sheets for bad crops or alignment errors.
-- Train the LRW-style ResNet18+BiGRU grayscale baseline.
-- Compare ResNet18 from scratch with frozen ImageNet-pretrained ResNet18.
-- Add plots for loss/accuracy.
-- Add confusion matrix and per-class accuracy.
-- Write the semester 4 report.
+- Run the stable tiny-overfit gates on 16 and 32 clips.
+- If either gate fails, use the generated error CSV and frame triplets to debug the pipeline.
+- If both gates pass, train models for 30 epochs with early stopping and save the best checkpoint by validation macro-F1.
+- Compare grayscale `FrameCNN+BiGRU`, frozen ImageNet `ResNet18+BiGRU`, and then an LRW-style temporal model.
+- Keep the speaker-based split as the main evaluation; use random split only as a sanity check.
+- Report accuracy, macro-F1, balanced accuracy, per-class recall, prediction distribution, and confusion matrix.
+- Freeze the current 955-clip split as dataset v1, then add 2-4 speakers and target weak word classes for dataset v2.
+- Repeat the two best models with three random seeds and evaluate the selected model on test once.
