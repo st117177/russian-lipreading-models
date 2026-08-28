@@ -160,6 +160,20 @@ trained grayscale CNN+BiGRU model and exports high-loss / wrong-prediction CSV
 files plus contact-sheet images. This is used to inspect only suspicious clips
 instead of manually reviewing the whole dataset.
 
+Before adding more complex architectures blindly, the notebooks now include a
+small memorization diagnostic:
+
+```text
+Tiny Overfit Test
+```
+
+It trains the `FrameCNN+BiGRU` grayscale model only on 16 and 32 training clips.
+The expected result is high training accuracy on this tiny subset. If the model
+cannot overfit such a small sample, the next step is to debug labels, video
+loading, target ids, loss, learning rate, or the training loop. If it can overfit,
+then the main problem is more likely dataset size, quality, balance, or
+generalization to unseen speakers.
+
 The current next model step is an LRW-style baseline:
 
 ```text
@@ -191,7 +205,9 @@ semi-automatic filtering of bad mouth crops and rebuilding the baseline split.
 3. Enable GPU runtime.
 4. Run notebook cells from top to bottom.
 
-The notebook restores the dataset archive from Google Drive into Colab temporary storage and trains a simple 3D-CNN baseline.
+The notebook restores the dataset archive from Google Drive into Colab temporary
+storage. After defining `FrameCNN+BiGRU`, first run the `Tiny Overfit Test`
+sections to check whether the model can memorize a very small training subset.
 
 ### Kaggle
 
@@ -205,6 +221,9 @@ The Kaggle notebook reads data from `/kaggle/input` and saves checkpoints to
 
 ## Next Steps
 
+- Run the `Tiny Overfit Test` on 16 and 32 clips.
+- If tiny overfit fails, debug data loading, labels, target ids, loss, learning rate, and training loop before changing architectures.
+- If tiny overfit succeeds, continue with full speaker-based training and treat low validation accuracy as a dataset/generalization problem.
 - Replace or exclude low-quality speakers.
 - Improve class balance.
 - Add balanced sampling or oversampling.

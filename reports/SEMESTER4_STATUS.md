@@ -210,6 +210,27 @@ checkpoint. Подключение готовых LRW-весов можно ос
 frame encoder, augmentation, class balancing для ResNet-модели и/или дальнейшая
 проверка качества данных.
 
+После этого в notebook добавлен диагностический блок `Tiny Overfit Test`.
+Он нужен не для финального качества, а для проверки самого training pipeline:
+
+```text
+train subset из 16-32 клипов
+-> FrameCNN+BiGRU grayscale
+-> много эпох только на этих клипах
+-> ожидаем train accuracy около 90-100%
+```
+
+Как интерпретировать результат:
+
+- если модель не может запомнить 16-32 клипа, значит надо сначала чинить
+  `clip_path -> word -> class_id`, загрузку видео, target ids, loss, learning rate
+  или training loop;
+- если модель легко запоминает маленький subset, значит базовый pipeline работает,
+  а низкая validation accuracy на полном split связана скорее с размером, качеством,
+  балансом данных или обобщением на новых спикеров;
+- если tiny overfit успешен, только после этого имеет смысл продолжать сравнение
+  `FrameCNN+BiGRU`, `ResNet18+BiGRU`, pretrained/frozen encoder и augmentation.
+
 После этого добавлен эксперимент `Frozen ImageNet ResNet18+BiGRU`:
 
 ```text
@@ -229,15 +250,19 @@ LRW-pretrained checkpoint.
 
 1. Привести Colab notebook в чистый вид и сохранить в репозиторий.
 2. Обновить README, чтобы там были актуальные padded-файлы и Colab-инструкция.
-3. Добрать/заменить плохих спикеров `spk09`, `spk10`.
-4. Сделать balanced split или balanced sampler.
-5. Обучить `FrameCNN+BiGRU` на RGB и grayscale input.
-6. Запустить random-split sanity check.
-7. Запустить model-based clip audit и проверить contact sheets.
-8. Обучить LRW-style `ResNet18+BiGRU` baseline.
-9. Сравнить ResNet18 с нуля и frozen ImageNet-pretrained ResNet18.
-10. Построить графики loss/accuracy, confusion matrix и per-class accuracy.
-11. Написать отчет: датасет, пайплайн, модель, эксперименты, проблемы, выводы.
+3. Запустить `Tiny Overfit Test` на 16 и 32 клипах.
+4. Если tiny overfit не сработает, остановить архитектурные эксперименты и
+   проверить labels, загрузку видео, target ids, loss, learning rate и training loop.
+5. Если tiny overfit сработает, продолжить full training на speaker-based split.
+6. Добрать/заменить плохих спикеров `spk09`, `spk10` уже по результатам диагностики.
+7. Сделать balanced split или balanced sampler.
+8. Обучить `FrameCNN+BiGRU` на RGB и grayscale input.
+9. Запустить random-split sanity check.
+10. Запустить model-based clip audit и проверить contact sheets.
+11. Обучить LRW-style `ResNet18+BiGRU` baseline.
+12. Сравнить ResNet18 с нуля и frozen ImageNet-pretrained ResNet18.
+13. Построить графики loss/accuracy, confusion matrix и per-class accuracy.
+14. Написать отчет: датасет, пайплайн, модель, эксперименты, проблемы, выводы.
 
 Расширенный план:
 
