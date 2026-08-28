@@ -1,0 +1,90 @@
+# План Dataset V2
+
+## Зачем расширять данные
+
+На dataset v1 модель успешно запоминает маленький набор и достигает высокой
+train accuracy, но плохо работает на новом validation-спикере. Лучший balanced
+эксперимент дал:
+
+```text
+train accuracy: 0.8414
+validation accuracy: 0.2381
+validation macro-F1: 0.1669
+предсказано классов: 9 из 10
+```
+
+Следовательно, training pipeline работает, а основное ограничение сейчас -
+мало разных train-спикеров и сильное доминирование `spk04`.
+
+## Что собирать
+
+- 2-4 новых спикера с хорошо видимым лицом и небольшим количеством монтажа;
+- не добавлять новые клипы `spk04`;
+- по возможности брать разные пол, возраст, освещение, фон и положение камеры;
+- исходные видео должны иметь разборчивую речь и пригодные субтитры;
+- приоритетно добирать слова `человек`, `потом`, `время`, `просто`;
+- дополнительно проверить покрытие слов `будет` и `может`: на текущем
+  validation split их recall равен нулю.
+
+Целевая версия:
+
+```text
+1500-2500 чистых клипов
+10 слов
+8-10 хороших спикеров
+не менее 100 клипов на слово
+не более 30% train-клипов от одного спикера
+```
+
+Не требуется заранее скачивать отдельное видео для каждого слова. Сначала
+скачиваются длинные разговорные видео новых спикеров, затем существующий
+pipeline автоматически находит и нарезает слова, присутствующие в словаре.
+
+## Как сохранить сравнимость с V1
+
+Dataset v1 остается неизменным:
+
+```text
+train: spk03, spk04, spk05
+validation: spk06
+test: spk07, spk08
+```
+
+Первый split dataset v2 должен добавить новых спикеров в train, но сохранить
+`spk06` в validation и `spk07/spk08` в test. Тогда изменение качества можно
+связать именно с расширением train-данных.
+
+Если будут добавлены четыре хороших спикера, можно сделать второй, более
+строгий split с новым человеком в validation и новым человеком в test. Он будет
+дополнительным экспериментом, а не заменой сравнимому v1/v2 split.
+
+## Порядок обработки
+
+```text
+candidate_videos.csv
+-> download_candidate_videos.py
+-> chunk_raw_videos_for_maus.py
+-> prepare_maus_inputs.py
+-> batch_submit_webmaus_basic.py
+-> batch_generate_phonewords_frames.py
+-> batch_cut_ru_clips_from_words_frames.py
+-> build_labels_from_clips.py
+-> quality_check_clips.py
+-> create_mouth_crops.py
+-> apply_manual_mouth_crop_filter.py
+-> create_ml_splits.py
+```
+
+Ручная проверка всего датасета не нужна. Сначала используются automatic quality
+check, high-loss/wrong-prediction CSV и contact sheets. Вручную просматриваются
+только наиболее подозрительные клипы.
+
+## Эксперимент после сборки
+
+1. Зафиксировать статистику dataset v2 по словам и спикерам.
+2. Создать speaker-based split с тем же validation-спикером `spk06`.
+3. Повторить frozen `ResNet18+BiGRU` с balanced sampler без изменения
+   training protocol.
+4. Сравнить v1 и v2 по validation macro-F1, balanced accuracy и per-class recall.
+5. После этого решить, нужен ли более сложный LRW-style temporal backend.
+

@@ -247,6 +247,12 @@ It changes only the training sampler. Every non-empty `(speaker, word)` group
 receives equal total sampling probability, which reduces the dominance of
 `spk04` and frequent words without changing validation or using test data.
 
+This balanced experiment has been completed. It reached validation macro-F1
+`0.1669`, balanced accuracy `0.1768`, accuracy `0.2381`, and predicted 9 of 10
+classes. This is the best class coverage and macro-F1 so far, but train accuracy
+reached about `0.84` while validation remained weak. The current bottleneck is
+therefore generalization to an unseen speaker, not a broken training loop.
+
 1. Upload `kaggle_lipreading_dataset.zip` or `colab_lipreading_dataset.zip` to Google Drive.
 2. Open `notebooks/lipreading_baseline_sem4_clean.ipynb` in Google Colab.
 3. Enable GPU runtime.
@@ -270,11 +276,11 @@ The Kaggle notebook reads data from `/kaggle/input` and saves checkpoints to
 
 ## Next Steps
 
-- Run the stable tiny-overfit gates on 16 and 32 clips.
-- If either gate fails, use the generated error CSV and frame triplets to debug the pipeline.
-- If both gates pass, train models for 30 epochs with early stopping and save the best checkpoint by validation macro-F1.
-- Compare grayscale `FrameCNN+BiGRU`, frozen ImageNet `ResNet18+BiGRU`, and then an LRW-style temporal model.
-- Keep the speaker-based split as the main evaluation; use random split only as a sanity check.
-- Report accuracy, macro-F1, balanced accuracy, per-class recall, prediction distribution, and confusion matrix.
-- Freeze the current 955-clip split as dataset v1, then add 2-4 speakers and target weak word classes for dataset v2.
-- Repeat the two best models with three random seeds and evaluate the selected model on test once.
+- Keep the current 955-clip dataset and its split frozen as dataset v1.
+- Build dataset v2 by adding 2-4 new good speakers; do not add more `spk04`.
+- Preserve `spk06` as validation for the first v1/v2 comparison.
+- Repeat the balanced frozen `ResNet18+BiGRU` experiment on dataset v2.
+- Only then decide whether to unfreeze ResNet18 or add an LRW-style temporal model.
+- Run the final two variants with three seeds and evaluate the selected model on test once.
+
+The detailed collection and evaluation plan is in `data/DATASET_V2_PLAN.md`.

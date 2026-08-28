@@ -8,6 +8,8 @@ Current contents:
 - `candidate_videos.csv` - candidate YouTube videos grouped by speaker.
 - `DATASET_V1.md` - frozen statistics and evaluation rules for the current
   955-clip coursework baseline.
+- `DATASET_V2_PLAN.md` - concrete collection, split, and comparison plan for
+  expanding the dataset with new speakers.
 
 The generated video dataset is stored outside this GitHub repository because it
 contains downloaded videos, generated clips, mouth crops, and Colab archives.
