@@ -160,6 +160,24 @@ trained grayscale CNN+BiGRU model and exports high-loss / wrong-prediction CSV
 files plus contact-sheet images. This is used to inspect only suspicious clips
 instead of manually reviewing the whole dataset.
 
+The current next model step is an LRW-style baseline:
+
+```text
+grayscale mouth ROI
+-> ResNet18 frame encoder
+-> BiGRU temporal encoder
+-> word classifier
+```
+
+This is implemented with `torchvision.models.resnet18` and does not require
+downloading external lip-reading checkpoints. LRW-pretrained weights can be a
+separate future integration step.
+
+The notebooks also add a frozen ImageNet-pretrained ResNet18 experiment. In that
+setup the ResNet18 frame encoder is frozen and only the BiGRU temporal encoder
+and word classifier are trained. This tests whether general pretrained visual
+features help on the small coursework dataset.
+
 Visual inspection of `mouth_crops_padded/` also showed that some automatically
 created mouth crops contain wrong regions. The next dataset step is manual or
 semi-automatic filtering of bad mouth crops and rebuilding the baseline split.
@@ -194,6 +212,8 @@ The Kaggle notebook reads data from `/kaggle/input` and saves checkpoints to
 - Compare RGB and grayscale input.
 - Run random-split sanity check to separate model/data problems from unseen-speaker generalization problems.
 - Run model-based clip audit and inspect contact sheets for bad crops or alignment errors.
+- Train the LRW-style ResNet18+BiGRU grayscale baseline.
+- Compare ResNet18 from scratch with frozen ImageNet-pretrained ResNet18.
 - Add plots for loss/accuracy.
 - Add confusion matrix and per-class accuracy.
 - Write the semester 4 report.

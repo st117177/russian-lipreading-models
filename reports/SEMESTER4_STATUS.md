@@ -183,6 +183,46 @@ trained grayscale CNN+BiGRU
 
 Идея: не чистить руками весь датасет, а сначала посмотреть 30-50 самых подозрительных клипов.
 
+Следующий модельный шаг:
+
+```text
+grayscale mouth ROI
+-> ResNet18 frame encoder
+-> BiGRU temporal encoder
+-> Linear classifier
+-> word class
+```
+
+Это LRW-style baseline: он ближе к архитектурам из word-level lip-reading проектов,
+где используется более сильный frame encoder и отдельный temporal backend.
+Сейчас он реализован через `torchvision.models.resnet18` без внешних LRW-pretrained
+checkpoint. Подключение готовых LRW-весов можно оставить как отдельный расширенный этап.
+
+Промежуточный результат `ResNet18+BiGRU`:
+
+- параметров: около `11.7M`;
+- `ResNet18+BiGRU grayscale speaker split`: best validation accuracy около `0.314`;
+- результат примерно совпал с маленькой `FrameCNN+BiGRU grayscale`;
+- модель всё ещё в основном предсказывает самый частый класс.
+
+Вывод: простое увеличение архитектуры не решило задачу. Следующий шаг должен быть
+не просто “модель побольше”, а более аккуратная стратегия обучения: pretrained/frozen
+frame encoder, augmentation, class balancing для ResNet-модели и/или дальнейшая
+проверка качества данных.
+
+После этого добавлен эксперимент `Frozen ImageNet ResNet18+BiGRU`:
+
+```text
+ImageNet-pretrained ResNet18 frame encoder
+-> encoder frozen
+-> train only BiGRU temporal encoder + classifier
+```
+
+Зачем: проверить, помогут ли готовые общие визуальные признаки на маленьком
+датасете, где обучение ResNet18 с нуля оказалось неэффективным. Это ещё не
+lip-reading pretrained модель, но более контролируемый шаг перед интеграцией
+LRW-pretrained checkpoint.
+
 ## Что еще нужно сделать для курсовой
 
 Минимальный план:
@@ -194,12 +234,14 @@ trained grayscale CNN+BiGRU
 5. Обучить `FrameCNN+BiGRU` на RGB и grayscale input.
 6. Запустить random-split sanity check.
 7. Запустить model-based clip audit и проверить contact sheets.
-8. Построить графики loss/accuracy, confusion matrix и per-class accuracy.
-9. Написать отчет: датасет, пайплайн, модель, эксперименты, проблемы, выводы.
+8. Обучить LRW-style `ResNet18+BiGRU` baseline.
+9. Сравнить ResNet18 с нуля и frozen ImageNet-pretrained ResNet18.
+10. Построить графики loss/accuracy, confusion matrix и per-class accuracy.
+11. Написать отчет: датасет, пайплайн, модель, эксперименты, проблемы, выводы.
 
 Расширенный план:
 
-1. Если `FrameCNN+BiGRU` тоже слабая, попробовать CNN+TCN.
+1. Если `ResNet18+BiGRU` тоже слабая, сначала проверить датасет/разметку, затем попробовать CNN+TCN.
 2. Увеличить датасет до более ровного количества клипов на слово и спикера.
 3. Сравнить full-frame clips и mouth crops.
 4. Добавить ручной quality review для спорных клипов.
