@@ -214,6 +214,18 @@ notebooks/lipreading_tiny_overfit_colab.ipynb
 It contains only dataset restoration and the stable 16/32-clip tiny-overfit
 checks, so it does not rerun the older baseline or ResNet experiments.
 
+After both tiny-overfit gates pass, use the controlled full-dataset baseline:
+
+```text
+notebooks/lipreading_framecnn_bigru_controlled_colab.ipynb
+```
+
+This notebook trains the grayscale `FrameCNN+BiGRU` for at most 30 epochs on
+the speaker-based split, stops early after seven epochs without improvement,
+and selects the best checkpoint by validation macro-F1. It saves the checkpoint,
+history, per-class report, validation predictions, curves, and confusion matrix
+to Google Drive. The test split is deliberately not evaluated.
+
 1. Upload `kaggle_lipreading_dataset.zip` or `colab_lipreading_dataset.zip` to Google Drive.
 2. Open `notebooks/lipreading_baseline_sem4_clean.ipynb` in Google Colab.
 3. Enable GPU runtime.

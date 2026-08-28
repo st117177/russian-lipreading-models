@@ -255,6 +255,27 @@ train subset из 16-32 клипов
 32 клипах. До прохождения обоих критериев тяжелые model experiments запускать
 не нужно.
 
+Стабильный tiny-overfit был запущен в Colab и успешно прошел оба gate:
+
+- 16 клипов: `1.00` memorization accuracy на эпохе 43;
+- 32 клипа: `1.00` memorization accuracy на эпохе 129;
+- label round trip: корректен;
+- conflicting duplicate tensors: 0;
+- zero-motion clips: 0;
+- zero-variance clips: 0;
+- итог: `PIPELINE PASS`.
+
+Это подтверждает, что video loading, labels, forward pass, loss, backward pass
+и optimizer способны обучать модель. Низкое качество полного baseline теперь
+нужно исследовать как проблему обобщения, архитектуры, дисбаланса и объема
+данных, а не как фундаментальную ошибку training loop.
+
+Для следующего этапа добавлен отдельный notebook
+`notebooks/lipreading_framecnn_bigru_controlled_colab.ipynb`. Он обучает
+`FrameCNN+BiGRU grayscale` на 700 train-клипах и проверяет на 105 клипах нового
+спикера `spk06`: максимум 30 эпох, AdamW, early stopping с patience 7, выбор
+checkpoint по validation macro-F1. Test split в этом эксперименте не используется.
+
 После этого добавлен эксперимент `Frozen ImageNet ResNet18+BiGRU`:
 
 ```text
