@@ -306,6 +306,28 @@ Frozen features извлекаются один раз и сохраняются
 эксперимент быстрее и проверяет, помогают ли готовые visual features без обучения
 11.7M параметров ResNet18 на маленьком датасете. Test split не используется.
 
+Эксперимент `Frozen ImageNet ResNet18 features + BiGRU` был запущен:
+
+- feature cache: train `[700, 24, 512]`, validation `[105, 24, 512]`;
+- лучшая эпоха: 6;
+- validation accuracy: `0.2857`;
+- validation macro-F1: `0.0935`;
+- validation balanced accuracy: `0.1594`;
+- предсказано 5 классов из 10;
+- train accuracy дошла примерно до `0.50`, но validation не росла;
+- test split не использовался.
+
+По сравнению с FrameCNN macro-F1 вырос с `0.0736` до `0.0935`, balanced accuracy
+с `0.1106` до `0.1594`, число предсказываемых классов с 3 до 5. Однако accuracy
+осталась ниже majority baseline, поэтому улучшение недостаточно для размораживания
+большого ResNet-блока.
+
+Следующий дешевый diagnostic experiment:
+`notebooks/lipreading_frozen_resnet18_bigru_balanced_colab.ipynb`. Он повторно
+использует готовые features и меняет только train sampling: каждое непустое
+сочетание `(speaker, word)` получает одинаковую суммарную вероятность. Это
+проверяет влияние доминирования `spk04` и частых слов до расширения датасета.
+
 После этого добавлен эксперимент `Frozen ImageNet ResNet18+BiGRU`:
 
 ```text

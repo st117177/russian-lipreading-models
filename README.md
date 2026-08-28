@@ -237,6 +237,16 @@ Google Drive, and trains only a BiGRU word classifier. The frozen encoder is kep
 in evaluation mode, grayscale frames are repeated to three channels and
 ImageNet-normalized, and the test split remains unused.
 
+The follow-up imbalance diagnostic reuses the same cached features:
+
+```text
+notebooks/lipreading_frozen_resnet18_bigru_balanced_colab.ipynb
+```
+
+It changes only the training sampler. Every non-empty `(speaker, word)` group
+receives equal total sampling probability, which reduces the dominance of
+`spk04` and frequent words without changing validation or using test data.
+
 1. Upload `kaggle_lipreading_dataset.zip` or `colab_lipreading_dataset.zip` to Google Drive.
 2. Open `notebooks/lipreading_baseline_sem4_clean.ipynb` in Google Colab.
 3. Enable GPU runtime.
