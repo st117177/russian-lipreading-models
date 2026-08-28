@@ -205,6 +205,15 @@ semi-automatic filtering of bad mouth crops and rebuilding the baseline split.
 
 ### Colab
 
+For the current diagnostic step, use the short standalone notebook:
+
+```text
+notebooks/lipreading_tiny_overfit_colab.ipynb
+```
+
+It contains only dataset restoration and the stable 16/32-clip tiny-overfit
+checks, so it does not rerun the older baseline or ResNet experiments.
+
 1. Upload `kaggle_lipreading_dataset.zip` or `colab_lipreading_dataset.zip` to Google Drive.
 2. Open `notebooks/lipreading_baseline_sem4_clean.ipynb` in Google Colab.
 3. Enable GPU runtime.
