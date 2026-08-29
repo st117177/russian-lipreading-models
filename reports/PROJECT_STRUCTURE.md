@@ -16,6 +16,8 @@ Lip-reading-demo-dataset/
 │
 └── semester4_coursework/
     ├── dataset_local/
+    │   ├── private_metadata/
+    │   │   └── candidate_videos.csv
     │   └── ru_dataset/
     │       ├── 00_raw/
     │       ├── 01_intermediate_clips/
@@ -36,8 +38,7 @@ Lip-reading-demo-dataset/
     │
     └── notes/
         ├── SEMESTER4_STATUS.md
-        ├── README_PIPELINE.md
-        └── candidate_videos.csv
+        └── README_PIPELINE.md
 ```
 
 ## Why Dataset And Repository Are Separate
@@ -55,6 +56,7 @@ The GitHub repository should contain:
 
 The local dataset folder should contain:
 
+- the private source manifest with creator names and video URLs;
 - downloaded videos;
 - WebMAUS chunks;
 - generated word clips;

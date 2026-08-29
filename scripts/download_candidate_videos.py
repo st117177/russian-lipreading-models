@@ -1,16 +1,14 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import argparse
 import csv
 import subprocess
 from pathlib import Path
 
 
-MANIFEST = Path("candidate_videos.csv")
-RAW_ROOT = Path("ru_dataset/raw_videos")
-LONG_VIDEO_LIMITS = {
-    "source_spk10_01": "*00:00:00-00:25:00",
-}
+DEFAULT_MANIFEST = Path("candidate_videos.csv")
+DEFAULT_RAW_ROOT = Path("ru_dataset/raw_videos")
 
 
 def video_id_from_url(url: str) -> str:
@@ -24,9 +22,11 @@ def video_id_from_url(url: str) -> str:
     return probe.stdout.strip().splitlines()[-1]
 
 
-def run_download(speaker_id: str, url: str) -> None:
+def run_download(
+    speaker_id: str, url: str, raw_root: Path, download_section: str = ""
+) -> None:
     video_id = video_id_from_url(url)
-    out_dir = RAW_ROOT / speaker_id / video_id
+    out_dir = raw_root / speaker_id / video_id
     out_dir.mkdir(parents=True, exist_ok=True)
     output_template = str(out_dir / f"{video_id}.%(ext)s")
 
@@ -49,22 +49,39 @@ def run_download(speaker_id: str, url: str) -> None:
         output_template,
     ]
 
-    if video_id in LONG_VIDEO_LIMITS:
-        cmd.extend(["--download-sections", LONG_VIDEO_LIMITS[video_id], "--force-keyframes-at-cuts"])
+    if download_section:
+        cmd.extend(
+            ["--download-sections", download_section, "--force-keyframes-at-cuts"]
+        )
 
     cmd.append(url)
     print(f"\n== {speaker_id}/{video_id} ==")
     subprocess.run(cmd, check=True)
 
 
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Download videos and Russian subtitles from a private CSV manifest."
+    )
+    parser.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST)
+    parser.add_argument("--raw-root", type=Path, default=DEFAULT_RAW_ROOT)
+    return parser.parse_args()
+
+
 def main() -> int:
-    with MANIFEST.open("r", encoding="utf-8-sig", newline="") as f:
+    args = parse_args()
+    with args.manifest.open("r", encoding="utf-8-sig", newline="") as f:
         rows = list(csv.DictReader(f))
 
     failed = 0
     for row in rows:
         try:
-            run_download(row["speaker_id"].strip(), row["url"].strip())
+            run_download(
+                row["speaker_id"].strip(),
+                row["url"].strip(),
+                args.raw_root,
+                row.get("download_section", "").strip(),
+            )
         except Exception as exc:
             failed += 1
             print(f"ERROR {row['speaker_id']} {row['url']}: {exc!r}")

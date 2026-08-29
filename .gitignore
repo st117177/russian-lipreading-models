@@ -5,6 +5,9 @@ __pycache__/
 
 # Local datasets and generated media
 ru_dataset/
+candidate_videos.csv
+private_metadata/
+private_sources/
 raw_videos/
 raw_video_chunks/
 selected_clips*/
