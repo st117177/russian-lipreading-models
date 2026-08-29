@@ -65,6 +65,11 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST)
     parser.add_argument("--raw-root", type=Path, default=DEFAULT_RAW_ROOT)
+    parser.add_argument(
+        "--speaker-id",
+        action="append",
+        help="Only download this speaker. Repeat the option for multiple speakers.",
+    )
     return parser.parse_args()
 
 
@@ -72,6 +77,10 @@ def main() -> int:
     args = parse_args()
     with args.manifest.open("r", encoding="utf-8-sig", newline="") as f:
         rows = list(csv.DictReader(f))
+
+    if args.speaker_id:
+        selected_speakers = set(args.speaker_id)
+        rows = [row for row in rows if row["speaker_id"].strip() in selected_speakers]
 
     failed = 0
     for row in rows:

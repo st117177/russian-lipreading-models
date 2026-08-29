@@ -16,12 +16,28 @@ The expanded clean padded dataset currently contains:
 - 14 words
 - 8 speakers
 
-For the current baseline, problematic speakers `spk09` and `spk10` are excluded. The recommended speaker-based split contains:
+Dataset v1 is frozen for baseline comparison. Problematic speakers `spk09` and
+`spk10` are excluded. Its recommended speaker-based split contains:
 
 - train: 700 clips, speakers `spk03`, `spk04`, `spk05`
 - validation: 105 clips, speaker `spk06`
 - test: 150 clips, speakers `spk07`, `spk08`
 - total: 955 clips, 10 words, 6 speakers
+
+Dataset v2 adds two new anonymized speakers to train while preserving the v1
+validation and test sets:
+
+- source material: 5 videos, about 147 minutes, split into 32 WebMAUS chunks
+- extracted: 437 word-level clips
+- after automatic checks: 408 mouth crops
+- after contact-sheet review: 400 clean new mouth crops
+- train: 1100 clips, speakers `spk03`, `spk04`, `spk05`, `spk11`, `spk12`
+- validation: 105 clips, speaker `spk06` (unchanged from v1)
+- test: 150 clips, speakers `spk07`, `spk08` (unchanged from v1)
+- total: 1355 clips, 10 words, 8 speakers
+
+Source video URLs, channel names, and original video identifiers are private
+local metadata and are intentionally not stored in this repository.
 
 The full dataset is not stored in this repository because it contains generated video files. It should be stored separately, for example on Google Drive.
 
@@ -38,10 +54,16 @@ videos are in:
 C:\Users\Sobaka\Desktop\Lip-reading-demo-dataset\semester4_coursework\dataset_local\ru_dataset\02_model_inputs\mouth_crops_padded
 ```
 
-The current local split files are in:
+The dataset v1 split files are in:
 
 ```text
 C:\Users\Sobaka\Desktop\Lip-reading-demo-dataset\semester4_coursework\dataset_local\ru_dataset\03_splits\ml_splits_mouth_crops_padded_clean_manual_no_spk09_10\speaker_top10
+```
+
+The dataset v2 split files are in:
+
+```text
+C:\Users\Sobaka\Desktop\Lip-reading-demo-dataset\semester4_coursework\dataset_local\ru_dataset\03_splits\ml_splits_mouth_crops_padded_dataset_v2\speaker_top10
 ```
 
 ## Repository Structure
@@ -102,6 +124,7 @@ manual crop cleaning:
 - `create_mouth_crops.py`
 - `apply_manual_mouth_crop_filter.py`
 - `create_ml_splits.py`
+- `package_ml_dataset.py`
 
 ## Current Baseline
 
@@ -197,11 +220,19 @@ setup the ResNet18 frame encoder is frozen and only the BiGRU temporal encoder
 and word classifier are trained. This tests whether general pretrained visual
 features help on the small coursework dataset.
 
-Visual inspection of `mouth_crops_padded/` also showed that some automatically
-created mouth crops contain wrong regions. The next dataset step is manual or
-semi-automatic filtering of bad mouth crops and rebuilding the baseline split.
+Visual inspection showed that automatic face detection can occasionally crop a
+wrong region. Dataset v2 therefore uses automatic checks followed by contact-sheet
+review of suspicious crops. Eight bad new crops were removed through a local
+rejection list without deleting or publishing source metadata.
 
 ## How to Run the Baseline
+
+The local preprocessing scripts use a separate Python environment. Install the
+reproducible dependencies with:
+
+```text
+python -m pip install -r requirements-pipeline.txt
+```
 
 ### Colab
 
@@ -253,6 +284,26 @@ classes. This is the best class coverage and macro-F1 so far, but train accuracy
 reached about `0.84` while validation remained weak. The current bottleneck is
 therefore generalization to an unseen speaker, not a broken training loop.
 
+The controlled dataset-v2 repetition is:
+
+```text
+notebooks/lipreading_frozen_resnet18_bigru_balanced_v2_colab.ipynb
+```
+
+It is self-contained: it restores dataset v2, extracts and caches new frozen
+ResNet18 features, trains the same BiGRU with the same speaker-word balanced
+sampler, and compares the resulting validation metrics with the saved dataset-v1
+summary. It writes to a separate Drive directory and does not evaluate test.
+
+The local dataset-v2 archive is:
+
+```text
+ru_dataset/05_colab_package/colab_lipreading_dataset_v2.zip
+```
+
+It contains only the 1355 clips referenced by the v2 split plus split metadata.
+The archive is kept outside GitHub.
+
 1. Upload `kaggle_lipreading_dataset.zip` or `colab_lipreading_dataset.zip` to Google Drive.
 2. Open `notebooks/lipreading_baseline_sem4_clean.ipynb` in Google Colab.
 3. Enable GPU runtime.
@@ -277,9 +328,9 @@ The Kaggle notebook reads data from `/kaggle/input` and saves checkpoints to
 ## Next Steps
 
 - Keep the current 955-clip dataset and its split frozen as dataset v1.
-- Build dataset v2 by adding 2-4 new good speakers; do not add more `spk04`.
-- Preserve `spk06` as validation for the first v1/v2 comparison.
+- Keep the prepared 1355-clip dataset and its split as dataset v2.
 - Repeat the balanced frozen `ResNet18+BiGRU` experiment on dataset v2.
+- Compare v1 and v2 using the same `spk06` validation set and macro-F1.
 - Only then decide whether to unfreeze ResNet18 or add an LRW-style temporal model.
 - Run the final two variants with three seeds and evaluate the selected model on test once.
 

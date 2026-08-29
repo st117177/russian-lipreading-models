@@ -166,7 +166,7 @@ def make_contact_sheet(
         if not ret:
             frame = np.zeros((thumb_h, thumb_w, 3), dtype=np.uint8)
         thumb = cv2.resize(frame, (thumb_w, thumb_h), interpolation=cv2.INTER_AREA)
-        label = f"{row['word']} {row['speaker_id']}"
+        label = f"{row['clip_id']} {row['speaker_id']}"
         cv2.putText(thumb, label[:22], (4, 16), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (255, 255, 255), 1)
         flag_text = str(row.get("flags") or "")[:28]
         if flag_text:

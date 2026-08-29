@@ -162,6 +162,11 @@ def main() -> int:
     parser.add_argument("--val-speakers", default=",".join(DEFAULT_VAL_SPEAKERS))
     parser.add_argument("--test-speakers", default=",".join(DEFAULT_TEST_SPEAKERS))
     parser.add_argument("--exclude-speakers", default="")
+    parser.add_argument(
+        "--only-speaker-top",
+        action="store_true",
+        help="Create only the speaker-based top-N split used for final evaluation.",
+    )
     args = parser.parse_args()
 
     rows = read_rows(args.labels)
@@ -178,13 +183,18 @@ def main() -> int:
     val_speakers = parse_speakers(args.val_speakers)
     test_speakers = parse_speakers(args.test_speakers)
 
-    full_speaker = speaker_split(rows, train_speakers, val_speakers, test_speakers)
-    save_split_set(args.out_dir, "speaker_full14", full_speaker, fieldnames, args.labels)
-
     top = top_words(rows, args.top_words)
     top_rows = filter_words(rows, set(top))
     top_speaker = speaker_split(top_rows, train_speakers, val_speakers, test_speakers)
     save_split_set(args.out_dir, f"speaker_top{args.top_words}", top_speaker, fieldnames, args.labels, top)
+
+    if args.only_speaker_top:
+        print(f"Saved split to {args.out_dir / f'speaker_top{args.top_words}'}")
+        print(f"Top-{args.top_words} words: {', '.join(top)}")
+        return 0
+
+    full_speaker = speaker_split(rows, train_speakers, val_speakers, test_speakers)
+    save_split_set(args.out_dir, "speaker_full14", full_speaker, fieldnames, args.labels)
 
     random_full = stratified_random_split(rows, args.seed, train_ratio=0.8, val_ratio=0.1)
     save_split_set(args.out_dir, "random_full14", random_full, fieldnames, args.labels)

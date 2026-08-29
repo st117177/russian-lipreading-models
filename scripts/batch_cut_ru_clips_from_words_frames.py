@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import argparse
 import csv
-import subprocess
 import sys
 from pathlib import Path
 
@@ -29,23 +28,15 @@ def get_fps(video_path: Path) -> float:
 
 
 def get_duration_sec(video_path: Path) -> float:
-    result = subprocess.run(
-        [
-            "ffprobe",
-            "-v",
-            "error",
-            "-show_entries",
-            "format=duration",
-            "-of",
-            "default=noprint_wrappers=1:nokey=1",
-            str(video_path),
-        ],
-        check=True,
-        text=True,
-        capture_output=True,
-        encoding="utf-8",
-    )
-    return float(result.stdout.strip())
+    cap = cv2.VideoCapture(str(video_path))
+    try:
+        fps = cap.get(cv2.CAP_PROP_FPS) or 0.0
+        frame_count = cap.get(cv2.CAP_PROP_FRAME_COUNT) or 0.0
+    finally:
+        cap.release()
+    if fps <= 0 or frame_count <= 0:
+        raise RuntimeError(f"Could not read duration from {video_path}")
+    return frame_count / fps
 
 
 def pick_video(chunk_dir: Path) -> Path | None:
@@ -73,9 +64,16 @@ def main() -> int:
     parser.add_argument("--end-padding-sec", type=float, default=0.30)
     parser.add_argument("--max-duration-sec", type=float, default=2.0)
     parser.add_argument("--copy-codecs", action="store_true")
+    parser.add_argument(
+        "--speaker-id",
+        action="append",
+        default=None,
+        help="Only process this speaker folder; repeat to select several speakers",
+    )
     args = parser.parse_args()
 
     vocab = load_vocab(args.vocab)
+    speaker_ids = set(args.speaker_id or [])
     ffmpeg_exe = imageio_ffmpeg.get_ffmpeg_exe()
     rows: list[dict[str, str]] = []
     made = 0
@@ -85,6 +83,8 @@ def main() -> int:
         align_dir = wf.parent
         chunk_dir = align_dir.parent
         speaker_id = chunk_dir.parent.name
+        if speaker_ids and speaker_id not in speaker_ids:
+            continue
         video_path = pick_video(chunk_dir)
         if video_path is None:
             skipped += 1

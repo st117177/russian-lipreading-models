@@ -32,6 +32,7 @@ def submit_job(
     language: str,
     out_format: str,
     verify_ssl: bool,
+    timeout_sec: float = 600.0,
 ) -> tuple[str, str]:
     with signal_path.open("rb") as signal_file, text_path.open("rb") as text_file:
         files = {
@@ -46,7 +47,7 @@ def submit_job(
             SERVICE_URL,
             data=data,
             files=files,
-            timeout=3600,
+            timeout=timeout_sec,
             verify=verify_ssl,
         )
 
@@ -65,8 +66,13 @@ def submit_job(
     return download_link, warnings_text
 
 
-def download_file(url: str, out_path: Path, verify_ssl: bool) -> None:
-    with requests.get(url, stream=True, timeout=3600, verify=verify_ssl) as response:
+def download_file(
+    url: str,
+    out_path: Path,
+    verify_ssl: bool,
+    timeout_sec: float = 600.0,
+) -> None:
+    with requests.get(url, stream=True, timeout=timeout_sec, verify=verify_ssl) as response:
         response.raise_for_status()
         out_path.parent.mkdir(parents=True, exist_ok=True)
         with out_path.open("wb") as f:
@@ -82,6 +88,7 @@ def main() -> int:
     parser.add_argument("--out-format", default="TextGrid")
     parser.add_argument("--insecure", action="store_true")
     parser.add_argument("--backup-existing", action="store_true")
+    parser.add_argument("--timeout-sec", type=float, default=600.0)
     args = parser.parse_args()
 
     verify_ssl = not args.insecure
@@ -100,8 +107,14 @@ def main() -> int:
         language=args.language,
         out_format=args.out_format,
         verify_ssl=verify_ssl,
+        timeout_sec=args.timeout_sec,
     )
-    download_file(download_link, args.out, verify_ssl=verify_ssl)
+    download_file(
+        download_link,
+        args.out,
+        verify_ssl=verify_ssl,
+        timeout_sec=args.timeout_sec,
+    )
 
     print(f"Downloaded: {args.out}")
     print(f"Download link: {download_link}")

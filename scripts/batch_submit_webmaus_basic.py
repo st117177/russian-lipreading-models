@@ -82,16 +82,23 @@ def main() -> int:
     parser.add_argument("--backup-existing", action="store_true")
     parser.add_argument("--sleep-sec", type=float, default=1.0)
     parser.add_argument("--limit", type=int, default=None)
-    parser.add_argument("--speaker-id", default=None, help="Only process one speaker folder, e.g. spk03")
+    parser.add_argument(
+        "--speaker-id",
+        action="append",
+        default=None,
+        help="Only process this speaker folder; repeat to select several speakers",
+    )
     parser.add_argument("--video-id", default=None, help="Only process one video folder name")
     parser.add_argument("--insecure", action="store_true")
+    parser.add_argument("--timeout-sec", type=float, default=600.0)
     args = parser.parse_args()
 
     verify_ssl = not args.insecure
     items = iter_batch_items(args.raw_videos_root)
 
-    if args.speaker_id is not None:
-        items = [item for item in items if item.video_dir.parent.name == args.speaker_id]
+    if args.speaker_id:
+        speaker_ids = set(args.speaker_id)
+        items = [item for item in items if item.video_dir.parent.name in speaker_ids]
     if args.video_id is not None:
         items = [item for item in items if item.video_dir.name == args.video_id]
     if args.limit is not None and args.limit >= 0:
@@ -119,7 +126,8 @@ def main() -> int:
 
         print(
             f"[{idx}/{len(items)}] SUBMIT {item.video_dir.parent.name}/{item.video_dir.name} "
-            f"-> {item.output_path.name}"
+            f"-> {item.output_path.name}",
+            flush=True,
         )
 
         try:
@@ -129,8 +137,14 @@ def main() -> int:
                 language=args.language,
                 out_format=args.out_format,
                 verify_ssl=verify_ssl,
+                timeout_sec=args.timeout_sec,
             )
-            download_file(download_link, item.output_path, verify_ssl=verify_ssl)
+            download_file(
+                download_link,
+                item.output_path,
+                verify_ssl=verify_ssl,
+                timeout_sec=args.timeout_sec,
+            )
             done += 1
             print(f"  saved: {item.output_path}")
             if warnings_text:

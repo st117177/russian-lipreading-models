@@ -89,11 +89,19 @@ def main() -> int:
     parser.add_argument("--chunk-sec", type=float, default=300.0)
     parser.add_argument("--min-text-tokens", type=int, default=20)
     parser.add_argument("--overwrite", action="store_true")
+    parser.add_argument(
+        "--speaker-id",
+        action="append",
+        help="Only process this speaker. Repeat the option for multiple speakers.",
+    )
     args = parser.parse_args()
 
     made = 0
     skipped = 0
+    speaker_ids = set(args.speaker_id or [])
     for video_dir in iter_video_dirs(args.raw_videos_root):
+        if speaker_ids and video_dir.parent.name not in speaker_ids:
+            continue
         video_path = pick_video(video_dir)
         srt_path = pick_srt(video_dir)
         if video_path is None or srt_path is None:

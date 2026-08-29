@@ -50,7 +50,7 @@ video + transcript
 Сравнение с демо-датасетом 3 семестра:
 
 - было в `lip-read-demo-dataset/labels.csv`: 182 клипа, 8 слов, 5 спикеров;
-- стало в `ru_dataset/selected_labels_padded_clean.csv`: 1222 clean-клипа, 14 слов, 8 спикеров;
+- стало в `ru_dataset/01_intermediate_clips/selected_labels_padded_clean.csv`: 1222 clean-клипа, 14 слов, 8 спикеров;
 - общий рост clean-датасета: `182 -> 1222`, то есть примерно в 6.7 раза.
 
 Padded full-frame clips:
@@ -349,6 +349,51 @@ Frozen features извлекаются один раз и сохраняются
 архитектуру, нужно собрать dataset v2 с новыми спикерами. Подробный план:
 `data/DATASET_V2_PLAN.md`.
 
+## Dataset v2: выполненное расширение
+
+Dataset v1 зафиксирован без изменений: 955 клипов, 10 слов и 6 спикеров.
+Для dataset v2 локально обработаны 5 новых исходных видео общей длительностью
+около 147 минут от двух новых анонимных спикеров. Сведения об авторах, URL и
+исходных идентификаторах видео хранятся только локально и в репозиторий не
+добавляются.
+
+Выполнены этапы:
+
+1. Видео и автосубтитры загружены пакетно.
+2. Видео разбиты на 32 пятиминутных чанка.
+3. Для всех 32 чанков подготовлены WAV 16 kHz и очищенный текст.
+4. Через BAS WebMAUS автоматически получены 32 TextGrid.
+5. Из TextGrid получены `words_frames.txt` с учетом FPS каждого видео.
+6. Нарезано 437 word-level клипов с временным padding вокруг слова.
+7. Automatic quality check оставил 408 клипов с найденным лицом.
+8. Созданы 408 mouth ROI; по contact sheets исключены 8 ложных кропов.
+9. Итоговое расширение: 400 чистых новых mouth-клипов.
+
+Новый speaker-based split:
+
+- train: 1100 клипов, 5 спикеров (`spk03`, `spk04`, `spk05`, `spk11`, `spk12`);
+- validation: 105 клипов, прежний `spk06`;
+- test: 150 клипов, прежние `spk07`, `spk08`;
+- всего: 1355 клипов, 10 слов, 8 спикеров.
+
+Таким образом, между v1 и v2 изменился только train: добавлены 400 клипов и
+два новых спикера. Validation и test сохранены без изменений, поэтому следующий
+эксперимент сможет измерить влияние разнообразия обучающих спикеров.
+
+Для воспроизводимого запуска подготовлены:
+
+- локальный архив `colab_lipreading_dataset_v2.zip`, содержащий только 1355
+  клипов из split и файлы разметки;
+- отдельный notebook
+  `notebooks/lipreading_frozen_resnet18_bigru_balanced_v2_colab.ipynb`;
+- отдельная папка результатов на Google Drive, поэтому результаты v1 не
+  перезаписываются.
+
+Notebook повторяет на v2 тот же протокол, что дал лучший macro-F1 на v1:
+frozen ImageNet ResNet18, BiGRU и speaker-word balanced sampler. Признаки v2
+извлекаются заново, потому что старый cache содержит только 700 train-клипов v1.
+Validation остается прежним (`spk06`), test не используется.
+
 После этого добавлен эксперимент `Frozen ImageNet ResNet18+BiGRU`:
 
 ```text
@@ -370,10 +415,9 @@ LRW-pretrained checkpoint.
 2. Считать первое сравнение моделей на dataset v1 завершенным: проверены
    `FrameCNN+BiGRU`, frozen `ResNet18+BiGRU` и balanced sampler.
 3. Зафиксировать dataset v1 и не менять его файлы или split.
-4. Для dataset v2 добавить 2-4 новых хороших спикера. `spk04` больше не
-   увеличивать.
-5. Сначала добавить новых людей в train и сохранить старый `spk06` как
-   validation, чтобы результат v2 можно было честно сравнить с v1.
+4. Считать dataset v2 подготовленным: добавлены два новых спикера и 400 чистых
+   mouth-клипов; `spk04` не увеличивался.
+5. Сохранить старый `spk06` как validation и старые `spk07`/`spk08` как test.
 6. Повторить frozen `ResNet18+BiGRU` с balanced sampler на v2 по тому же
    протоколу.
 7. Только после v2 решить, нужен ли LRW-style `3D frontend + ResNet18 + TCN`
@@ -399,6 +443,7 @@ LRW-pretrained checkpoint.
   - `ru_dataset/04_quality_reports/quality_padded/padded_timing_compare.jpg`
   - `ru_dataset/04_quality_reports/quality_padded/spk09_spk10_contact_sheet.jpg`
   - `ru_dataset/04_quality_reports/quality_padded/flagged_contact_sheet.jpg`
-- архив для Colab: `ru_dataset/05_colab_package/colab_lipreading_dataset.zip`
+- архив dataset v1 для Colab: `ru_dataset/05_colab_package/colab_lipreading_dataset.zip`
+- архив dataset v2 для Colab: `ru_dataset/05_colab_package/colab_lipreading_dataset_v2.zip`
 
 Полного нового отчета для 4 семестра пока нет. Этот файл является кратким статус-репортом.

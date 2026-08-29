@@ -15,7 +15,7 @@ cv2.VideoCapture(video)
 
 4. вызывает
 
-external/ustelemov/scripts/get_phonewords_frames.py"""
+локальный scripts/get_phonewords_frames.py из пайплайна 3 семестра"""
 
 from __future__ import annotations
 
@@ -31,9 +31,10 @@ import cv2
 from prepare_maus_inputs import get_video_id
 
 
+REPO_ROOT = Path(__file__).resolve().parent.parent
 RAW_VIDEOS_ROOT = Path("ru_dataset/raw_videos")
-PHONEWORDS_SCRIPT = Path("external/ustelemov/scripts/get_phonewords_frames.py")
-PHONEME_KEYS_DICT = Path("external/ustelemov/dicts/phonemes_keys.txt")
+PHONEWORDS_SCRIPT = REPO_ROOT / "scripts" / "get_phonewords_frames.py"
+PHONEME_KEYS_DICT = REPO_ROOT / "dicts" / "phonemes_keys.txt"
 EXCLUDED_VIDEOS_PATH = Path("ru_dataset/qa/excluded_videos.csv")
 VIDEO_EXTS = {".mp4", ".mov", ".avi", ".mkv", ".webm"}
 OUTPUT_FILES = (
