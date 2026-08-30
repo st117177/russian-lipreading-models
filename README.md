@@ -304,6 +304,26 @@ ru_dataset/05_colab_package/colab_lipreading_dataset_v2.zip
 It contains only the 1355 clips referenced by the v2 split plus split metadata.
 The archive is kept outside GitHub.
 
+The first dataset-v2 run completed at validation accuracy `0.1524`, macro-F1
+`0.1301`, balanced accuracy `0.1655`, and predictions across all 10 classes.
+The corresponding single-seed v1 macro-F1 was `0.1669`, so dataset v2 did not
+improve this model in one run. A short cached-feature multi-seed comparison is
+provided in:
+
+```text
+notebooks/lipreading_v1_v2_balanced_multiseed_colab.ipynb
+```
+
+It runs the same balanced BiGRU protocol for v1 and v2 with seeds 42, 123, and
+2026, then saves mean/std metrics and paired v2-minus-v1 macro-F1 differences.
+It does not decode videos, rerun ResNet18, or use the test split.
+
+For this immediate next step, upload/open only that notebook in Colab and run it
+top to bottom. The required v1 and v2 feature caches are already on Google Drive,
+so no dataset ZIP is needed and a CPU runtime is sufficient.
+
+The older end-to-end baseline instructions are retained below for reproducibility:
+
 1. Upload `kaggle_lipreading_dataset.zip` or `colab_lipreading_dataset.zip` to Google Drive.
 2. Open `notebooks/lipreading_baseline_sem4_clean.ipynb` in Google Colab.
 3. Enable GPU runtime.
@@ -329,8 +349,8 @@ The Kaggle notebook reads data from `/kaggle/input` and saves checkpoints to
 
 - Keep the current 955-clip dataset and its split frozen as dataset v1.
 - Keep the prepared 1355-clip dataset and its split as dataset v2.
-- Repeat the balanced frozen `ResNet18+BiGRU` experiment on dataset v2.
-- Compare v1 and v2 using the same `spk06` validation set and macro-F1.
+- Run the cached-feature multi-seed v1/v2 comparison.
+- Compare mean/std validation macro-F1 on the unchanged `spk06` validation set.
 - Only then decide whether to unfreeze ResNet18 or add an LRW-style temporal model.
 - Run the final two variants with three seeds and evaluate the selected model on test once.
 

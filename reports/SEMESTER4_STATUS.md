@@ -394,18 +394,30 @@ frozen ImageNet ResNet18, BiGRU и speaker-word balanced sampler. Признак
 извлекаются заново, потому что старый cache содержит только 700 train-клипов v1.
 Validation остается прежним (`spk06`), test не используется.
 
-После этого добавлен эксперимент `Frozen ImageNet ResNet18+BiGRU`:
+Эксперимент на dataset v2 выполнен с seed 42:
 
-```text
-ImageNet-pretrained ResNet18 frame encoder
--> encoder frozen
--> train only BiGRU temporal encoder + classifier
-```
+- лучшая эпоха: 14;
+- train accuracy на лучшей эпохе: около `0.67`;
+- validation accuracy: `0.1524`;
+- validation macro-F1: `0.1301`;
+- validation balanced accuracy: `0.1655`;
+- модель предсказала все 10 классов;
+- test split не использовался.
 
-Зачем: проверить, помогут ли готовые общие визуальные признаки на маленьком
-датасете, где обучение ResNet18 с нуля оказалось неэффективным. Это ещё не
-lip-reading pretrained модель, но более контролируемый шаг перед интеграцией
-LRW-pretrained checkpoint.
+Для сравнения, тот же balanced baseline на v1 с seed 42 дал accuracy `0.2381`,
+macro-F1 `0.1669`, balanced accuracy `0.1768` и 9 предсказываемых классов.
+Следовательно, в одном запуске добавление 400 клипов и двух train-спикеров не
+улучшило качество на `spk06`: macro-F1 снизился на `0.0368`. При этом исчез
+полный class collapse, так как v2 предсказывает все классы. Это полезный
+отрицательный результат, но одного seed и 105 validation-клипов недостаточно
+для окончательного вывода.
+
+Для проверки устойчивости добавлен короткий notebook
+`notebooks/lipreading_v1_v2_balanced_multiseed_colab.ipynb`. Он использует уже
+готовые feature caches, повторяет одинаковый balanced BiGRU protocol для v1 и
+v2 на seed `42`, `123`, `2026`, считает среднее, стандартное отклонение и
+парную разницу `v2 - v1`. ResNet18 и видео повторно не запускаются, test не
+используется.
 
 ## Что еще нужно сделать для курсовой
 
@@ -418,13 +430,14 @@ LRW-pretrained checkpoint.
 4. Считать dataset v2 подготовленным: добавлены два новых спикера и 400 чистых
    mouth-клипов; `spk04` не увеличивался.
 5. Сохранить старый `spk06` как validation и старые `spk07`/`spk08` как test.
-6. Повторить frozen `ResNet18+BiGRU` с balanced sampler на v2 по тому же
-   протоколу.
-7. Только после v2 решить, нужен ли LRW-style `3D frontend + ResNet18 + TCN`
-   или размораживание последнего блока ResNet18.
-8. Для двух лучших вариантов выполнить по три запуска с разными seed, выбрать
-   модель по validation macro-F1 и один раз оценить ее на test.
-9. Написать отчет: датасет, pipeline, диагностика, модели, эксперименты и выводы.
+6. Считать single-seed повтор frozen `ResNet18+BiGRU` с balanced sampler на v2
+   завершенным: улучшение относительно v1 не получено.
+7. Выполнить одинаковое multi-seed сравнение v1/v2 на seed `42`, `123`, `2026`.
+8. По его результату решить, нужен ли LRW-style `3D frontend + ResNet18 + TCN`,
+   lip-reading pretraining или размораживание последнего блока ResNet18.
+9. Для двух лучших финальных вариантов выбрать модель по validation macro-F1 и
+   один раз оценить ее на test.
+10. Написать отчет: датасет, pipeline, диагностика, модели, эксперименты и выводы.
 
 Расширенный план:
 
