@@ -428,6 +428,33 @@ features совпадают (`max feature difference = 0`). Notebook испра�
 результаты v1/v2, где каждый cache обучался и оценивался со своим согласованным
 словарем, но делает совместное сравнение корректным.
 
+Исправленный multi-seed эксперимент успешно выполнил все шесть запусков.
+Результаты `Frozen ResNet18 features + balanced BiGRU`:
+
+- v1 mean validation accuracy: `0.1778 ± 0.0574`;
+- v2 mean validation accuracy: `0.1587 ± 0.0440`;
+- v1 mean macro-F1: `0.1311 ± 0.0312`;
+- v2 mean macro-F1: `0.1416 ± 0.0458`;
+- v1 mean balanced accuracy: `0.1471 ± 0.0258`;
+- v2 mean balanced accuracy: `0.1715 ± 0.0104`;
+- средняя парная разница macro-F1 `v2 - v1`: `+0.0106`;
+- v2 выиграл по macro-F1 на двух seed из трех;
+- среднее число предсказываемых классов выросло с `8.67` до `9.33`;
+- test split не использовался.
+
+Вывод: добавление 400 клипов и двух train-спикеров дало небольшой положительный
+тренд по macro-F1 и более стабильную balanced accuracy, но обычная accuracy не
+выросла, а абсолютное качество остается низким. При трех seed это полезный
+контролируемый результат, но не сильное статистическое доказательство. Дальше
+нужно улучшать модель, а не продолжать хаотично собирать видео.
+
+Следующий controlled experiment:
+`notebooks/lipreading_v2_tcn_backend_multiseed_colab.ipynb`. Он сохраняет
+dataset v2, frozen ResNet18 features, balanced sampler и три seed, но заменяет
+BiGRU на компактный residual TCN. Это изолирует влияние temporal backend.
+Эксперимент не называется полной LRW-style моделью, потому что пока не включает
+lip-reading-pretrained 3D frontend и visual encoder.
+
 ## Что еще нужно сделать для курсовой
 
 Минимальный план:
@@ -441,12 +468,14 @@ features совпадают (`max feature difference = 0`). Notebook испра�
 5. Сохранить старый `spk06` как validation и старые `spk07`/`spk08` как test.
 6. Считать single-seed повтор frozen `ResNet18+BiGRU` с balanced sampler на v2
    завершенным: улучшение относительно v1 не получено.
-7. Выполнить одинаковое multi-seed сравнение v1/v2 на seed `42`, `123`, `2026`.
-8. По его результату решить, нужен ли LRW-style `3D frontend + ResNet18 + TCN`,
-   lip-reading pretraining или размораживание последнего блока ResNet18.
-9. Для двух лучших финальных вариантов выбрать модель по validation macro-F1 и
+7. Считать multi-seed сравнение v1/v2 завершенным: v2 показывает небольшой
+   положительный тренд по macro-F1 и balanced accuracy.
+8. Выполнить controlled TCN backend experiment на v2 и трех seed.
+9. По его результату решить, подключать ли lip-reading-pretrained
+   `3D frontend + ResNet18` или размораживать visual encoder.
+10. Для двух лучших финальных вариантов выбрать модель по validation macro-F1 и
    один раз оценить ее на test.
-10. Написать отчет: датасет, pipeline, диагностика, модели, эксперименты и выводы.
+11. Написать отчет: датасет, pipeline, диагностика, модели, эксперименты и выводы.
 
 Расширенный план:
 

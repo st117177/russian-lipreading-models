@@ -318,9 +318,26 @@ It runs the same balanced BiGRU protocol for v1 and v2 with seeds 42, 123, and
 2026, then saves mean/std metrics and paired v2-minus-v1 macro-F1 differences.
 It does not decode videos, rerun ResNet18, or use the test split.
 
-For this immediate next step, upload/open only that notebook in Colab and run it
-top to bottom. The required v1 and v2 feature caches are already on Google Drive,
-so no dataset ZIP is needed and a CPU runtime is sufficient.
+The completed comparison gives mean macro-F1 `0.1311 ± 0.0312` for v1 and
+`0.1416 ± 0.0458` for v2. Dataset v2 wins on two of three paired seeds and has
+higher, more stable balanced accuracy (`0.1715 ± 0.0104` versus
+`0.1471 ± 0.0258`). This is a modest positive trend, while absolute validation
+quality remains weak.
+
+The next controlled temporal-backend experiment is:
+
+```text
+notebooks/lipreading_v2_tcn_backend_multiseed_colab.ipynb
+```
+
+It keeps dataset v2, cached frozen ResNet18 features, balanced sampling, and the
+same three seeds, but replaces BiGRU with a compact residual TCN. This isolates
+the temporal backend; it is not presented as a full LRW-style model because it
+does not yet include a lip-reading-pretrained 3D visual frontend.
+
+For the immediate next step, upload/open the TCN notebook in Colab and run it
+top to bottom. The required dataset-v2 feature cache is already on Google Drive,
+so no dataset ZIP is needed.
 
 The older end-to-end baseline instructions are retained below for reproducibility:
 
@@ -349,9 +366,9 @@ The Kaggle notebook reads data from `/kaggle/input` and saves checkpoints to
 
 - Keep the current 955-clip dataset and its split frozen as dataset v1.
 - Keep the prepared 1355-clip dataset and its split as dataset v2.
-- Run the cached-feature multi-seed v1/v2 comparison.
-- Compare mean/std validation macro-F1 on the unchanged `spk06` validation set.
-- Only then decide whether to unfreeze ResNet18 or add an LRW-style temporal model.
+- Treat the cached-feature multi-seed v1/v2 comparison as complete.
+- Run the compact TCN versus BiGRU temporal-backend comparison on dataset v2.
+- Then decide whether to integrate a lip-reading-pretrained 3D visual frontend.
 - Run the final two variants with three seeds and evaluate the selected model on test once.
 
 The detailed collection and evaluation plan is in `data/DATASET_V2_PLAN.md`.
