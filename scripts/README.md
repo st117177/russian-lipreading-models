@@ -25,6 +25,7 @@ YouTube links
 -> build labels
 -> quality check
 -> create mouth crops
+-> optionally create landmark-aligned mouth crops for model comparison
 -> create train/val/test splits
 -> package only split-referenced clips for Colab/Kaggle
 -> train PyTorch baseline in Colab
@@ -47,9 +48,10 @@ YouTube links
 | `build_labels_from_clips.py` | new for 4th semester | Builds CSV labels from the generated clip folder tree. | `collect_rows`, `get_clip_duration_sec`, `detect_source`, `write_labels` |
 | `quality_check_clips.py` | new for 4th semester | Checks clip duration/readability/face detection, writes clean labels, and creates contact sheets labeled by `clip_id`. | `analyze_clip`, `detect_faces`, `write_clean_labels`, `make_contact_sheet`, `write_report` |
 | `create_mouth_crops.py` | new for 4th semester | Creates mouth-region videos from word-level clips. | `find_face_box`, `mouth_box_from_face`, `fallback_lower_center_box`, `crop_video`, `write_manifest` |
+| `create_landmark_mouth_crops.py` | new for 4th semester | Creates a separate experimental mouth ROI using per-frame MediaPipe landmarks, eye-line alignment, temporal smoothing, and detection diagnostics. | `detect_geometry`, `smooth_geometry`, `rotate_and_crop`, `crop_video`, `create_contact_sheet` |
 | `apply_manual_mouth_crop_filter.py` | new for 4th semester | Removes manually rejected bad mouth crops from the labels CSV without deleting video files. | `normalize_path`, `load_bad_items`, `should_remove` |
 | `create_ml_splits.py` | new for 4th semester | Creates random or speaker-based train/validation/test splits; `--only-speaker-top` avoids unused diagnostic split folders. | `top_words`, `filter_words`, `speaker_split`, `stratified_random_split`, `save_split_set` |
-| `package_ml_dataset.py` | new for 4th semester | Builds a portable ZIP with only split-referenced clips and POSIX archive paths for Colab/Kaggle. | `read_split_rows`, `archive_name`, `main` |
+| `package_ml_dataset.py` | new for 4th semester | Builds a portable ZIP with only split-referenced clips and POSIX archive paths for Colab/Kaggle; can omit test while tuning. | `read_split_rows`, `archive_name`, `main` |
 | `validate_ru_dataset.py` | 3rd semester | Validates dataset labels, vocabulary, and clip files. | `read_vocab`, `validate` |
 
 ## What Was Actually Added In Semester 4

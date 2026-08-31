@@ -1,4 +1,4 @@
-"""Build a portable ZIP archive from one train/validation/test split.
+"""Build a portable ZIP archive from selected parts of one ML split.
 
 Only clips referenced by the split CSV files are included. Archive member paths
 always use forward slashes, so the result works in both Colab and Kaggle.
@@ -18,14 +18,24 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--split-dir", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--archive-root", default="ru_dataset")
+    parser.add_argument(
+        "--splits",
+        nargs="+",
+        choices=("train", "val", "test"),
+        default=("train", "val", "test"),
+        help="Split CSV files to include. Use '--splits train val' while tuning without test data.",
+    )
     return parser.parse_args()
 
 
-def read_split_rows(split_dir: Path) -> tuple[dict[str, list[dict[str, str]]], list[Path]]:
+def read_split_rows(
+    split_dir: Path,
+    split_names: list[str] | tuple[str, ...],
+) -> tuple[dict[str, list[dict[str, str]]], list[Path]]:
     split_rows: dict[str, list[dict[str, str]]] = {}
     clip_paths: list[Path] = []
 
-    for split_name in ("train", "val", "test"):
+    for split_name in split_names:
         csv_path = split_dir / f"{split_name}.csv"
         with csv_path.open("r", encoding="utf-8-sig", newline="") as file:
             rows = list(csv.DictReader(file))
@@ -50,7 +60,7 @@ def main() -> None:
     split_dir = args.split_dir.resolve()
     output = args.output.resolve()
 
-    split_rows, clip_paths = read_split_rows(split_dir)
+    split_rows, clip_paths = read_split_rows(split_dir, args.splits)
     unique_clip_paths = sorted(set(clip_paths), key=lambda path: path.as_posix())
     for clip_path in unique_clip_paths:
         validate_relative_path(clip_path)
@@ -71,7 +81,8 @@ def main() -> None:
                 archive_name(args.archive_root, clip_path),
             )
 
-        for metadata_name in ("train.csv", "val.csv", "test.csv", "vocab.txt", "README.md"):
+        metadata_names = [f"{name}.csv" for name in args.splits] + ["vocab.txt", "README.md"]
+        for metadata_name in metadata_names:
             metadata_path = split_dir / metadata_name
             if metadata_path.is_file():
                 archive.write(

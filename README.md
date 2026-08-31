@@ -225,6 +225,18 @@ wrong region. Dataset v2 therefore uses automatic checks followed by contact-she
 review of suspicious crops. Eight bad new crops were removed through a local
 rejection list without deleting or publishing source metadata.
 
+The next controlled preprocessing experiment is `landmark v3`. The original
+heuristic crop detects a face on a few frames and reuses one fixed lower-face box
+for the whole clip. The new script uses per-frame MediaPipe Face Mesh landmarks,
+eye-line alignment, temporal smoothing, and a minimum landmark-coverage gate.
+It creates a separate model input folder and does not overwrite dataset v2.
+
+The local development split for this experiment contains 1085 train clips and
+the unchanged 105-clip `spk06` validation set. Fifteen train clips failed the
+70% landmark-coverage threshold; all validation clips passed. Test is omitted
+because the previous test split has already been viewed and must not be reused
+for tuning.
+
 ## How to Run the Baseline
 
 The local preprocessing scripts use a separate Python environment. Install the
@@ -256,6 +268,17 @@ the speaker-based split, stops early after seven epochs without improvement,
 and selects the best checkpoint by validation macro-F1. It saves the checkpoint,
 history, per-class report, validation predictions, curves, and confusion matrix
 to Google Drive. The test split is deliberately not evaluated.
+
+To compare the old heuristic ROI with landmark-aligned preprocessing while
+keeping the LRW-pretrained model and training protocol fixed, use:
+
+```text
+notebooks/lipreading_lrw_landmark_v3_comparison_colab.ipynb
+```
+
+Upload the local archive `colab_lipreading_dataset_landmark_v3.zip` to Google
+Drive first. The decision is based on validation macro-F1 over seeds 42, 123,
+and 2026; the old-crop reference is 0.2736 +/- 0.0290.
 
 The next controlled transfer-learning experiment is:
 
