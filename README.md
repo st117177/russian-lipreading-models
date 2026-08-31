@@ -335,9 +335,23 @@ same three seeds, but replaces BiGRU with a compact residual TCN. This isolates
 the temporal backend; it is not presented as a full LRW-style model because it
 does not yet include a lip-reading-pretrained 3D visual frontend.
 
-For the immediate next step, upload/open the TCN notebook in Colab and run it
-top to bottom. The required dataset-v2 feature cache is already on Google Drive,
-so no dataset ZIP is needed.
+The completed TCN comparison gives mean macro-F1 `0.1182 +/- 0.0287`, compared
+with `0.1416 +/- 0.0458` for BiGRU. TCN wins on one of three paired seeds. Its
+mean balanced accuracy is similar (`0.1742` versus `0.1715`), but accuracy and
+class coverage are lower. Therefore changing only the temporal backend does not
+solve the generalization bottleneck.
+
+The next controlled visual-pretraining experiment is:
+
+```text
+notebooks/lipreading_lrw_pretrained_frontend_bigru_multiseed_colab.ipynb
+```
+
+It replaces the frozen ImageNet frame encoder with an official LRW-pretrained
+`3D Conv + ResNet18` visual frontend, while retaining the same dataset v2,
+balanced sampler, BiGRU classifier, seeds, validation split, and metrics. The
+pretrained model is used for non-commercial coursework research; its upstream
+repository and license are linked inside the notebook. Test remains untouched.
 
 The older end-to-end baseline instructions are retained below for reproducibility:
 
@@ -367,8 +381,9 @@ The Kaggle notebook reads data from `/kaggle/input` and saves checkpoints to
 - Keep the current 955-clip dataset and its split frozen as dataset v1.
 - Keep the prepared 1355-clip dataset and its split as dataset v2.
 - Treat the cached-feature multi-seed v1/v2 comparison as complete.
-- Run the compact TCN versus BiGRU temporal-backend comparison on dataset v2.
-- Then decide whether to integrate a lip-reading-pretrained 3D visual frontend.
+- Treat the compact TCN versus BiGRU comparison as complete: TCN did not improve
+  mean validation macro-F1.
+- Run the LRW-pretrained `3D Conv + ResNet18` visual-frontend comparison on v2.
 - Run the final two variants with three seeds and evaluate the selected model on test once.
 
 The detailed collection and evaluation plan is in `data/DATASET_V2_PLAN.md`.

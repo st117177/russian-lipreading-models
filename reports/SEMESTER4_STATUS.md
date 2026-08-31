@@ -455,6 +455,28 @@ BiGRU на компактный residual TCN. Это изолирует влия
 Эксперимент не называется полной LRW-style моделью, потому что пока не включает
 lip-reading-pretrained 3D frontend и visual encoder.
 
+TCN experiment выполнен на seed `42`, `123`, `2026`:
+
+- mean validation accuracy: `0.1206 +/- 0.0291`;
+- mean validation macro-F1: `0.1182 +/- 0.0287`;
+- mean validation balanced accuracy: `0.1742 +/- 0.0312`;
+- среднее число предсказываемых классов: `8.33` из 10;
+- TCN выиграл у BiGRU по macro-F1 на одном seed из трех;
+- mean macro-F1 оказался ниже BiGRU на `0.0234`;
+- test split не использовался.
+
+Вывод: TCN немного сохранил balanced accuracy, но снизил macro-F1, accuracy и
+class coverage. Простая замена temporal backend не устраняет основную проблему.
+Следующая проверяемая гипотеза относится к visual frontend: ImageNet-признаки
+не специализированы для артикуляции губ.
+
+Для этой проверки подготовлен notebook
+`notebooks/lipreading_lrw_pretrained_frontend_bigru_multiseed_colab.ipynb`.
+Он использует официальный LRW-pretrained `3D Conv + ResNet18` как замороженный
+visual encoder, извлекает новый feature cache и обучает тот же balanced BiGRU
+на трех seed. Поэтому относительно предыдущего лучшего протокола меняется
+только источник визуальных признаков. Test split не загружается.
+
 ## Что еще нужно сделать для курсовой
 
 Минимальный план:
@@ -470,9 +492,10 @@ lip-reading-pretrained 3D frontend и visual encoder.
    завершенным: улучшение относительно v1 не получено.
 7. Считать multi-seed сравнение v1/v2 завершенным: v2 показывает небольшой
    положительный тренд по macro-F1 и balanced accuracy.
-8. Выполнить controlled TCN backend experiment на v2 и трех seed.
-9. По его результату решить, подключать ли lip-reading-pretrained
-   `3D frontend + ResNet18` или размораживать visual encoder.
+8. Считать controlled TCN backend experiment завершенным: улучшения macro-F1
+   относительно BiGRU не получено.
+9. Выполнить эксперимент с LRW-pretrained `3D frontend + ResNet18` и тем же
+   balanced BiGRU protocol на трех seed.
 10. Для двух лучших финальных вариантов выбрать модель по validation macro-F1 и
    один раз оценить ее на test.
 11. Написать отчет: датасет, pipeline, диагностика, модели, эксперименты и выводы.
