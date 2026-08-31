@@ -280,6 +280,13 @@ Upload the local archive `colab_lipreading_dataset_landmark_v3.zip` to Google
 Drive first. The decision is based on validation macro-F1 over seeds 42, 123,
 and 2026; the old-crop reference is 0.2736 +/- 0.0290.
 
+The landmark experiment completed successfully. Mean validation results are
+accuracy `0.5460 +/- 0.0110`, macro-F1 `0.5359 +/- 0.0139`, and balanced
+accuracy `0.5787 +/- 0.0108`. It predicts all 10 classes and improves mean
+macro-F1 by `+0.2622` over the same LRW-pretrained model with the old crop.
+The landmark version wins on all three paired seeds and is now the selected
+preprocessing pipeline.
+
 The next controlled transfer-learning experiment is:
 
 ```text
@@ -383,22 +390,24 @@ ImageNet frontend reached mean macro-F1 `0.1416`; LRW pretraining improves it by
 `0.1320` and wins on all three paired seeds. This confirms visual-speech
 pretraining as the most important model change tested in this project.
 
-The selected checkpoints are evaluated without further training in:
+Before the landmark experiment, the old-crop checkpoints were evaluated without
+further training in:
 
 ```text
 notebooks/lipreading_lrw_pretrained_final_test_colab.ipynb
 ```
 
 This notebook loads the three already selected validation checkpoints, extracts
-LRW features for the reserved test speakers once, and reports final test
-mean/std metrics. Test results must not be used for further model selection.
+LRW features for the reserved test speakers once, and reports the historical
+old-crop test metrics. Test results must not be used for model selection.
 
-The final test-only evaluation is complete. Across the three selected
+That historical test-only evaluation is complete. Across the three old-crop
 checkpoints, test accuracy is `0.1822 +/- 0.0278`, macro-F1 is
 `0.1530 +/- 0.0206`, and balanced accuracy is `0.1804 +/- 0.0250`. The model
 predicts an average of `9.67/10` classes. Test macro-F1 is lower than validation
 macro-F1 (`0.2736`), showing that generalization to the two reserved speakers
-remains the main limitation. No further model selection is performed on test.
+was the main limitation of the old preprocessing. Those speakers have now been
+viewed and are not reused as an untouched final test for landmark v3.
 
 A compact, report-ready summary is available in
 `reports/FINAL_MODEL_RESULTS.md`.
@@ -434,8 +443,13 @@ The Kaggle notebook reads data from `/kaggle/input` and saves checkpoints to
 - Treat the compact TCN versus BiGRU comparison as complete: TCN did not improve
   mean validation macro-F1.
 - Treat the LRW-pretrained visual-frontend comparison as complete: it wins on
-  all three seeds and is the selected final model.
-- Treat the test-only evaluation as complete and freeze the reported result.
+  all three seeds.
+- Treat landmark v3 versus the old heuristic crop as complete: landmark v3
+  improves validation macro-F1 from `0.2736` to `0.5359` and wins on all seeds.
+- Freeze the LRW-pretrained + landmark + balanced BiGRU configuration. Do not
+  tune it further on `spk06` or the previously viewed `spk07`/`spk08` test.
+- Collect two or more new speakers for one untouched final test, then run
+  inference once without changing preprocessing, model, or hyperparameters.
 - Use `reports/FINAL_MODEL_RESULTS.md` for the coursework results section.
 
 The detailed collection and evaluation plan is in `data/DATASET_V2_PLAN.md`.
