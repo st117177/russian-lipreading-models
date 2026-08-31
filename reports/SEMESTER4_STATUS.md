@@ -477,6 +477,41 @@ visual encoder, извлекает новый feature cache и обучает т
 на трех seed. Поэтому относительно предыдущего лучшего протокола меняется
 только источник визуальных признаков. Test split не загружается.
 
+LRW-pretrained experiment успешно выполнен. Все ключи официального checkpoint
+совпали с архитектурой, train/validation feature caches имеют ожидаемые формы
+`[1100, 24, 512]` и `[105, 24, 512]`. Результаты по трем seed:
+
+- mean validation accuracy: `0.2857 +/- 0.0530`;
+- mean validation macro-F1: `0.2736 +/- 0.0290`;
+- mean validation balanced accuracy: `0.3157 +/- 0.0039`;
+- среднее число предсказываемых классов: `9.67` из 10;
+- выигрыш mean macro-F1 относительно ImageNet frontend: `+0.1320`;
+- LRW frontend выиграл у ImageNet frontend на всех трех seed;
+- test split не использовался.
+
+Отдельные macro-F1: seed 42 — `0.2411`, seed 123 — `0.2827`, seed 2026 —
+`0.2971`. Результат устойчивее предыдущих экспериментов: стандартное отклонение
+balanced accuracy равно только `0.0039`. Главный модельный вывод курсовой:
+предобучение на задаче чтения по губам дает намного больший эффект, чем замена
+temporal backend или добавление ImageNet-признаков.
+
+Финальная архитектура выбрана до просмотра test:
+
+```text
+24 grayscale mouth frames
+-> frozen LRW-pretrained 3D Conv + ResNet18
+-> sequence [24, 512]
+-> trainable BiGRU
+-> classifier for 10 Russian words
+```
+
+Для единственного финального этапа подготовлен test-only notebook
+`notebooks/lipreading_lrw_pretrained_final_test_colab.ipynb`. Он не обучает
+модель и не меняет гиперпараметры: загружает три уже выбранных по validation
+checkpoint, извлекает признаки 150 test-клипов спикеров `spk07` и `spk08` и
+считает mean/std test metrics. После этого test нельзя использовать для нового
+подбора архитектуры.
+
 ## Что еще нужно сделать для курсовой
 
 Минимальный план:
@@ -494,10 +529,10 @@ visual encoder, извлекает новый feature cache и обучает т
    положительный тренд по macro-F1 и balanced accuracy.
 8. Считать controlled TCN backend experiment завершенным: улучшения macro-F1
    относительно BiGRU не получено.
-9. Выполнить эксперимент с LRW-pretrained `3D frontend + ResNet18` и тем же
-   balanced BiGRU protocol на трех seed.
-10. Для двух лучших финальных вариантов выбрать модель по validation macro-F1 и
-   один раз оценить ее на test.
+9. Считать LRW-pretrained experiment завершенным: модель выиграла у ImageNet
+   frontend на всех трех seed и выбрана как финальная.
+10. Один раз выполнить test-only оценивание трех заранее сохраненных checkpoint
+    и после этого не менять модель по результатам test.
 11. Написать отчет: датасет, pipeline, диагностика, модели, эксперименты и выводы.
 
 Расширенный план:

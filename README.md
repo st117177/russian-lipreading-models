@@ -353,6 +353,23 @@ balanced sampler, BiGRU classifier, seeds, validation split, and metrics. The
 pretrained model is used for non-commercial coursework research; its upstream
 repository and license are linked inside the notebook. Test remains untouched.
 
+The LRW-pretrained experiment completed successfully. Mean validation metrics
+over seeds 42, 123, and 2026 are accuracy `0.2857 +/- 0.0530`, macro-F1
+`0.2736 +/- 0.0290`, and balanced accuracy `0.3157 +/- 0.0039`. The previous
+ImageNet frontend reached mean macro-F1 `0.1416`; LRW pretraining improves it by
+`0.1320` and wins on all three paired seeds. This confirms visual-speech
+pretraining as the most important model change tested in this project.
+
+The selected checkpoints are evaluated without further training in:
+
+```text
+notebooks/lipreading_lrw_pretrained_final_test_colab.ipynb
+```
+
+This notebook loads the three already selected validation checkpoints, extracts
+LRW features for the reserved test speakers once, and reports final test
+mean/std metrics. Test results must not be used for further model selection.
+
 The older end-to-end baseline instructions are retained below for reproducibility:
 
 1. Upload `kaggle_lipreading_dataset.zip` or `colab_lipreading_dataset.zip` to Google Drive.
@@ -383,7 +400,8 @@ The Kaggle notebook reads data from `/kaggle/input` and saves checkpoints to
 - Treat the cached-feature multi-seed v1/v2 comparison as complete.
 - Treat the compact TCN versus BiGRU comparison as complete: TCN did not improve
   mean validation macro-F1.
-- Run the LRW-pretrained `3D Conv + ResNet18` visual-frontend comparison on v2.
-- Run the final two variants with three seeds and evaluate the selected model on test once.
+- Treat the LRW-pretrained visual-frontend comparison as complete: it wins on
+  all three seeds and is the selected final model.
+- Run the test-only notebook once and freeze the reported result.
 
 The detailed collection and evaluation plan is in `data/DATASET_V2_PLAN.md`.
