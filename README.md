@@ -370,6 +370,16 @@ This notebook loads the three already selected validation checkpoints, extracts
 LRW features for the reserved test speakers once, and reports final test
 mean/std metrics. Test results must not be used for further model selection.
 
+The final test-only evaluation is complete. Across the three selected
+checkpoints, test accuracy is `0.1822 +/- 0.0278`, macro-F1 is
+`0.1530 +/- 0.0206`, and balanced accuracy is `0.1804 +/- 0.0250`. The model
+predicts an average of `9.67/10` classes. Test macro-F1 is lower than validation
+macro-F1 (`0.2736`), showing that generalization to the two reserved speakers
+remains the main limitation. No further model selection is performed on test.
+
+A compact, report-ready summary is available in
+`reports/FINAL_MODEL_RESULTS.md`.
+
 The older end-to-end baseline instructions are retained below for reproducibility:
 
 1. Upload `kaggle_lipreading_dataset.zip` or `colab_lipreading_dataset.zip` to Google Drive.
@@ -402,6 +412,7 @@ The Kaggle notebook reads data from `/kaggle/input` and saves checkpoints to
   mean validation macro-F1.
 - Treat the LRW-pretrained visual-frontend comparison as complete: it wins on
   all three seeds and is the selected final model.
-- Run the test-only notebook once and freeze the reported result.
+- Treat the test-only evaluation as complete and freeze the reported result.
+- Use `reports/FINAL_MODEL_RESULTS.md` for the coursework results section.
 
 The detailed collection and evaluation plan is in `data/DATASET_V2_PLAN.md`.
