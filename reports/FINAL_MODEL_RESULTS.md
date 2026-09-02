@@ -58,6 +58,25 @@ LRW frontend повысил mean macro-F1 на `0.1320` и выиграл у Ima
 macro-F1 на `0.2622` относительно старого heuristic crop и выиграл на всех трех
 paired seed. Это главный положительный preprocessing-результат работы.
 
+## Проверка дополнительной регуляризации
+
+После фиксации final-test результата был проведен отдельный validation-only
+эксперимент на сохраненных LRW-признаках. Final test в notebook не загружался.
+Проверялись temporal feature masking, небольшой Gaussian noise, feature
+dropout, label smoothing и более сильные dropout/weight decay; второй вариант
+дополнительно использовал `LayerNorm` перед BiGRU.
+
+| Вариант | Mean validation accuracy | Mean validation macro-F1 | Изменение macro-F1 |
+|---|---:|---:|---:|
+| Frozen LRW + BiGRU baseline | 0.5460 | 0.5359 | 0.0000 |
+| Feature augmentation + label smoothing | 0.4667 | 0.4737 | -0.0621 |
+| То же + LayerNorm | 0.3587 | около 0.3495 | около -0.1864 |
+
+Оба варианта предсказывали все десять классов, но не улучшили обобщение.
+Следовательно, дополнительную регуляризацию не следует выбирать как новую
+модель. Приоритетные следующие направления: новые train-спикеры и отдельный
+controlled experiment с частичной разморозкой последнего блока LRW-энкодера.
+
 ## Историческая test-оценка старого crop
 
 Три checkpoint старого crop были заранее выбраны по validation. На исходном
@@ -158,3 +177,6 @@ ImageNet pretraining и простой замены temporal backend. Затем
 обобщения на незнакомых людей, но результат остается заметно выше случайного и
 majority-class baseline. Текущая конфигурация и final-test результаты
 заморожены; использовать test для дальнейшего подбора модели нельзя.
+Validation-only regularization experiment не дал улучшения, поэтому наиболее
+обоснованный способ повысить speaker-independent качество — расширить train
+новыми людьми, а не добавлять регуляризацию к уже переобучающемуся backend.
