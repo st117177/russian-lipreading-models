@@ -448,8 +448,11 @@ The Kaggle notebook reads data from `/kaggle/input` and saves checkpoints to
   improves validation macro-F1 from `0.2736` to `0.5359` and wins on all seeds.
 - Freeze the LRW-pretrained + landmark + balanced BiGRU configuration. Do not
   tune it further on `spk06` or the previously viewed `spk07`/`spk08` test.
-- Collect two or more new speakers for one untouched final test, then run
-  inference once without changing preprocessing, model, or hyperparameters.
+- Treat the new 508-clip, three-speaker landmark-v3 final test as frozen. The
+  one-time three-seed evaluation is complete: `0.4370 +/- 0.0104` accuracy,
+  `0.3919 +/- 0.0158` macro-F1, and `0.4012 +/- 0.0179` balanced accuracy.
+- Keep `notebooks/lipreading_lrw_landmark_v3_untouched_final_test_colab.ipynb`
+  as the reproducible test-only evaluation; do not tune on its results.
 - Use `reports/FINAL_MODEL_RESULTS.md` for the coursework results section.
 
 The detailed collection and evaluation plan is in `data/DATASET_V2_PLAN.md`.

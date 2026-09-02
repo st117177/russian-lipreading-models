@@ -23,7 +23,11 @@ def video_id_from_url(url: str) -> str:
 
 
 def run_download(
-    speaker_id: str, url: str, raw_root: Path, download_section: str = ""
+    speaker_id: str,
+    url: str,
+    raw_root: Path,
+    download_section: str = "",
+    max_height: int = 480,
 ) -> None:
     video_id = video_id_from_url(url)
     out_dir = raw_root / speaker_id / video_id
@@ -42,7 +46,7 @@ def run_download(
         "--convert-subs",
         "srt",
         "-f",
-        "bv*[height<=480]+ba/b[height<=480]/b",
+        f"bv*[height<={max_height}]+ba/b[height<={max_height}]/b",
         "--merge-output-format",
         "mp4",
         "-o",
@@ -65,6 +69,12 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST)
     parser.add_argument("--raw-root", type=Path, default=DEFAULT_RAW_ROOT)
+    parser.add_argument(
+        "--max-height",
+        type=int,
+        default=480,
+        help="Maximum downloaded video height. Use 720 for mouth-detail-sensitive datasets.",
+    )
     parser.add_argument(
         "--speaker-id",
         action="append",
@@ -90,6 +100,7 @@ def main() -> int:
                 row["url"].strip(),
                 args.raw_root,
                 row.get("download_section", "").strip(),
+                args.max_height,
             )
         except Exception as exc:
             failed += 1

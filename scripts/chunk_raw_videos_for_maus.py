@@ -87,6 +87,12 @@ def main() -> int:
     parser.add_argument("--raw-videos-root", type=Path, default=Path("ru_dataset/raw_videos"))
     parser.add_argument("--out-root", type=Path, default=Path("ru_dataset/raw_video_chunks"))
     parser.add_argument("--chunk-sec", type=float, default=300.0)
+    parser.add_argument(
+        "--max-duration-sec",
+        type=float,
+        default=None,
+        help="Only process this many seconds from the start of each source video.",
+    )
     parser.add_argument("--min-text-tokens", type=int, default=20)
     parser.add_argument("--overwrite", action="store_true")
     parser.add_argument(
@@ -110,7 +116,10 @@ def main() -> int:
             continue
 
         cues = parse_srt(srt_path)
-        total = duration_sec(video_path)
+        source_total = duration_sec(video_path)
+        total = source_total
+        if args.max_duration_sec is not None:
+            total = min(total, args.max_duration_sec)
         speaker_id = video_dir.parent.name
         video_id = video_dir.name
         chunks = int(math.ceil(total / args.chunk_sec))

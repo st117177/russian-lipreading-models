@@ -598,9 +598,13 @@ BiGRU` фиксируется до нового test.
     `0.5359`, выигрыш получен на всех трех seed.
 11. Зафиксировать `landmark v3 + frozen LRW frontend + balanced BiGRU` и больше
     не подбирать параметры по `spk06`, `spk07` или `spk08`.
-12. Собрать новый test минимум из двух ранее не использованных спикеров и один
-    раз выполнить inference.
-13. Написать отчет: датасет, pipeline, диагностика, модели, эксперименты и выводы.
+12. Считать новый независимый test подготовленным: 508 клипов, 10 слов,
+    3 ранее не использованных спикера, одинаковые 50-минутные source ranges.
+13. Финальный test-only запуск завершен на трех заранее выбранных checkpoint:
+    `0.4370 +/- 0.0104` accuracy, `0.3919 +/- 0.0158` macro-F1 и
+    `0.4012 +/- 0.0179` balanced accuracy; все модели предсказывают 10/10 классов.
+14. Перенести зафиксированные результаты в текст курсовой: датасет, pipeline,
+    диагностика, модели, эксперименты, ограничения и выводы.
 
 Расширенный план:
 
@@ -621,5 +625,9 @@ BiGRU` фиксируется до нового test.
   - `ru_dataset/04_quality_reports/quality_padded/flagged_contact_sheet.jpg`
 - архив dataset v1 для Colab: `ru_dataset/05_colab_package/colab_lipreading_dataset.zip`
 - архив dataset v2 для Colab: `ru_dataset/05_colab_package/colab_lipreading_dataset_v2.zip`
+- локальный архив нового final test:
+  `ru_dataset/05_colab_package/colab_lipreading_final_test_landmark_v3.zip`
+- test-only notebook:
+  `notebooks/lipreading_lrw_landmark_v3_untouched_final_test_colab.ipynb`
 
 Полного нового отчета для 4 семестра пока нет. Этот файл является кратким статус-репортом.

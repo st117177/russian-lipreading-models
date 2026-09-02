@@ -35,9 +35,9 @@ YouTube links
 
 | Script | Status | What it does | Main functions/classes |
 | --- | --- | --- | --- |
-| `download_candidate_videos.py` | new for 4th semester | Downloads YouTube videos and subtitles from a CSV list. | `video_id_from_url`, `run_download`, `main` |
-| `chunk_raw_videos_for_maus.py` | new for 4th semester | Splits long downloaded videos into shorter chunks for WebMAUS. | `pick_video`, `pick_srt`, `duration_sec`, `cut_video`, `iter_video_dirs` |
-| `prepare_maus_inputs.py` | edited for 4th semester | Extracts `.wav` audio and prepares cleaned transcript text. Also handles SRT cleanup. | `parse_srt`, `clean_transcript`, `extract_audio`, `collapse_rolling_subtitle_text` |
+| `download_candidate_videos.py` | new for 4th semester | Downloads YouTube videos and subtitles from a CSV list; `--max-height` selects the required source resolution. | `video_id_from_url`, `run_download`, `main` |
+| `chunk_raw_videos_for_maus.py` | new for 4th semester | Splits long downloaded videos into shorter chunks for WebMAUS; `--max-duration-sec` can limit processing to the beginning of each source. | `pick_video`, `pick_srt`, `duration_sec`, `cut_video`, `iter_video_dirs` |
+| `prepare_maus_inputs.py` | edited for 4th semester | Extracts `.wav` audio and prepares cleaned transcript text. Also handles SRT cleanup and uses the system `ffmpeg` with an `imageio-ffmpeg` fallback. | `parse_srt`, `clean_transcript`, `extract_audio`, `collapse_rolling_subtitle_text` |
 | `batch_prepare_maus_inputs.py` | 3rd semester | Batch wrapper for preparing WebMAUS inputs. | `main` |
 | `submit_webmaus_basic.py` | edited for 4th semester | Sends one audio/text pair to WebMAUS and downloads TextGrid; supports a bounded request timeout. | `submit_job`, `download_file`, `safe_upload_name` |
 | `batch_submit_webmaus_basic.py` | edited for 4th semester | Batch wrapper for WebMAUS submission with speaker filtering, timeout handling, and per-file error isolation. | `iter_batch_items`, `find_text_files`, `pick_signal_for_text` |
@@ -48,7 +48,7 @@ YouTube links
 | `build_labels_from_clips.py` | new for 4th semester | Builds CSV labels from the generated clip folder tree. | `collect_rows`, `get_clip_duration_sec`, `detect_source`, `write_labels` |
 | `quality_check_clips.py` | new for 4th semester | Checks clip duration/readability/face detection, writes clean labels, and creates contact sheets labeled by `clip_id`. | `analyze_clip`, `detect_faces`, `write_clean_labels`, `make_contact_sheet`, `write_report` |
 | `create_mouth_crops.py` | new for 4th semester | Creates mouth-region videos from word-level clips. | `find_face_box`, `mouth_box_from_face`, `fallback_lower_center_box`, `crop_video`, `write_manifest` |
-| `create_landmark_mouth_crops.py` | new for 4th semester | Creates a separate experimental mouth ROI using per-frame MediaPipe landmarks, eye-line alignment, temporal smoothing, and detection diagnostics. | `detect_geometry`, `smooth_geometry`, `rotate_and_crop`, `crop_video`, `create_contact_sheet` |
+| `create_landmark_mouth_crops.py` | new for 4th semester | Creates a separate experimental mouth ROI using per-frame MediaPipe landmarks, eye-line alignment, temporal smoothing, and detection diagnostics; supports the reserved final-test clip tree. | `detect_geometry`, `smooth_geometry`, `rotate_and_crop`, `crop_video`, `create_contact_sheet` |
 | `apply_manual_mouth_crop_filter.py` | new for 4th semester | Removes manually rejected bad mouth crops from the labels CSV without deleting video files. | `normalize_path`, `load_bad_items`, `should_remove` |
 | `create_ml_splits.py` | new for 4th semester | Creates random or speaker-based train/validation/test splits; `--only-speaker-top` avoids unused diagnostic split folders. | `top_words`, `filter_words`, `speaker_split`, `stratified_random_split`, `save_split_set` |
 | `package_ml_dataset.py` | new for 4th semester | Builds a portable ZIP with only split-referenced clips and POSIX archive paths for Colab/Kaggle; can omit test while tuning. | `read_split_rows`, `archive_name`, `main` |

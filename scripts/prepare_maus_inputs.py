@@ -5,12 +5,10 @@ from __future__ import annotations
 
 import argparse
 import re
+import shutil
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
-
-import imageio_ffmpeg
-
 
 TIMESTAMP_RE = re.compile(
     r"^\s*\d{1,2}:\d{2}(?::\d{2})?(?:[.,]\d{1,3})?\s*-->\s*\d{1,2}:\d{2}(?::\d{2})?(?:[.,]\d{1,3})?\s*$"
@@ -124,7 +122,11 @@ def clean_transcript(text: str) -> str:
 
 
 def extract_audio(video_path: Path, audio_path: Path) -> None:
-    ffmpeg_exe = imageio_ffmpeg.get_ffmpeg_exe()
+    ffmpeg_exe = shutil.which("ffmpeg")
+    if ffmpeg_exe is None:
+        import imageio_ffmpeg
+
+        ffmpeg_exe = imageio_ffmpeg.get_ffmpeg_exe()
     cmd = [
         ffmpeg_exe,
         "-y",
