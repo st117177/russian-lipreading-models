@@ -475,9 +475,13 @@ The Kaggle notebook reads data from `/kaggle/input` and saves checkpoints to
 - Treat dataset v3 preprocessing as complete: four new train speakers produced
   816 landmark crops, giving 1901 train clips while keeping `spk06` validation
   unchanged.
-- Run `notebooks/lipreading_lrw_landmark_dataset_v3_multiseed_colab.ipynb` with
-  the fixed LRW-pretrained + balanced BiGRU protocol and compare dataset v3
-  against dataset v2 by paired validation macro-F1 over the same three seeds.
+- Treat the dataset v3 all-speaker comparison as complete. With the fixed
+  LRW-pretrained + balanced BiGRU protocol, dataset v3 reached validation
+  macro-F1 `0.5091 +/- 0.0214` versus `0.5359 +/- 0.0139` for dataset v2 and
+  lost on all three paired seeds.
+- Run `notebooks/lipreading_dataset_v3_speaker_ablation_colab.ipynb` on the
+  cached LRW features to measure each new train speaker separately before
+  deciding which speakers belong in the next dataset version.
 - Keep test data closed until the dataset v3 validation decision is recorded.
 - Use `reports/FINAL_MODEL_RESULTS.md` for the coursework results section.
 

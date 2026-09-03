@@ -1,0 +1,5 @@
+metric,v2_mean,v2_std,v3_mean,v3_std,v3_minus_v2_mean
+validation_accuracy,0.546032,0.010997,0.530159,0.036057,-0.015873
+validation_macro_f1,0.535892,0.013897,0.509077,0.021393,-0.026815
+validation_balanced_accuracy,0.578679,0.010790,0.549185,0.041058,-0.029494
+predicted_classes,10.000000,0.000000,10.000000,0.000000,0.000000

@@ -123,3 +123,14 @@ check, high-loss/wrong-prediction CSV и contact sheets. Вручную прос
 Следующий controlled experiment меняет только train-данные. Архитектура,
 balanced sampler, validation split, три seed и выбор по macro-F1 остаются теми
 же, что в лучшем landmark dataset v2 эксперименте.
+
+Эксперимент завершен: dataset v3 дал `0.5091 +/- 0.0214` validation macro-F1,
+а dataset v2 - `0.5359 +/- 0.0139`. Dataset v3 проиграл на каждом из трех seed;
+test при этом не использовался. Поэтому новые данные не следует автоматически
+принимать целиком.
+
+Следующая диагностика добавляет к пяти train-спикерам dataset v2 каждого из
+четырех новых спикеров по отдельности. Все варианты обучаются на готовых frozen
+LRW features одной и той же BiGRU с одинаковыми seeds и balanced sampler. После
+этого сохраняются только спикеры, которые улучшают validation macro-F1 устойчиво,
+либо их данные направляются на выборочную проверку качества.

@@ -1,0 +1,4 @@
+model,dataset_version,seed,best_epoch,train_clips,speaker_word_groups,train_accuracy_at_best,train_loss_at_best,validation_loss,validation_accuracy,validation_macro_f1,validation_balanced_accuracy,predicted_classes,trainable_parameters,epochs_completed,training_seconds
+LRW-pretrained 3D Conv + ResNet18 features + BiGRU,v3,42,19,1901,90,0.966334,0.112852,1.917744,0.571429,0.525659,0.589970,10,495626,26,6.880451
+LRW-pretrained 3D Conv + ResNet18 features + BiGRU,v3,123,20,1901,90,0.963177,0.124811,2.215858,0.514286,0.484930,0.507859,10,495626,27,7.828034
+LRW-pretrained 3D Conv + ResNet18 features + BiGRU,v3,2026,12,1901,90,0.915308,0.295826,1.529069,0.504762,0.516642,0.549726,10,495626,19,4.238843
