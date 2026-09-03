@@ -637,3 +637,27 @@ BiGRU` фиксируется до нового test.
   `notebooks/lipreading_lrw_landmark_v3_untouched_final_test_colab.ipynb`
 
 Полного нового отчета для 4 семестра пока нет. Этот файл является кратким статус-репортом.
+
+## Расширение Train: Dataset V3
+
+После финальной оценки предыдущей версии выполнено отдельное расширение только
+train-части. Добавлены четыре новых анонимизированных спикера; сведения об
+источниках хранятся только в локальном приватном manifest и не публикуются.
+
+Результат preprocessing:
+
+- 200 минут исходной речи, по 50 минут на спикера;
+- 40 пятиминутных чанков и 40 успешных WebMAUS TextGrid;
+- 817 padded word-level клипов;
+- автоматический quality check оставил 816 клипов;
+- landmark preprocessing создал 816 из 816 mouth crops размером `96x96`;
+- новый train: 1901 клип, 10 слов, 9 спикеров;
+- прежний validation: 105 клипов `spk06`;
+- максимальная доля одного train-спикера снизилась до `24.8%`;
+- test в train/validation ZIP не включён.
+
+Для контролируемого сравнения создан notebook
+`notebooks/lipreading_lrw_landmark_dataset_v3_multiseed_colab.ipynb`. Он
+использует зафиксированную архитектуру LRW-pretrained frontend + balanced BiGRU,
+те же seeds и validation macro-F1. Следующее действие - запустить notebook и
+сравнить dataset v3 с landmark dataset v2 без обращения к test.

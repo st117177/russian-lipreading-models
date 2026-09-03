@@ -36,6 +36,19 @@ validation and test sets:
 - test: 150 clips, speakers `spk07`, `spk08` (unchanged from v1)
 - total: 1355 clips, 10 words, 8 speakers
 
+Dataset v3 is a train-expansion experiment with four additional anonymized
+speakers and landmark-aligned mouth crops. It preserves the same validation
+speaker and deliberately contains no test split during model selection:
+
+- source material: 4 videos, 200 minutes, split into 40 WebMAUS chunks
+- extracted: 817 padded word-level clips
+- after automatic quality checks: 816 clips
+- after landmark mouth cropping: 816 model inputs
+- train: 1901 clips, 9 speakers
+- validation: 105 clips, speaker `spk06` (unchanged)
+- test: not packaged or loaded during this experiment
+- largest train speaker: 472 clips (`24.8%` of train)
+
 Source video URLs, channel names, and original video identifiers are private
 local metadata and are intentionally not stored in this repository.
 
@@ -64,6 +77,12 @@ The dataset v2 split files are in:
 
 ```text
 C:\Users\Sobaka\Desktop\Lip-reading-demo-dataset\semester4_coursework\dataset_local\ru_dataset\03_splits\ml_splits_mouth_crops_padded_dataset_v2\speaker_top10
+```
+
+The dataset v3 train/validation split files are in:
+
+```text
+C:\Users\Sobaka\Desktop\Lip-reading-demo-dataset\semester4_coursework\dataset_local\ru_dataset\03_splits\ml_splits_mouth_crops_landmark_dataset_v3\speaker_top10
 ```
 
 ## Repository Structure
@@ -453,6 +472,13 @@ The Kaggle notebook reads data from `/kaggle/input` and saves checkpoints to
   `0.3919 +/- 0.0158` macro-F1, and `0.4012 +/- 0.0179` balanced accuracy.
 - Keep `notebooks/lipreading_lrw_landmark_v3_untouched_final_test_colab.ipynb`
   as the reproducible test-only evaluation; do not tune on its results.
+- Treat dataset v3 preprocessing as complete: four new train speakers produced
+  816 landmark crops, giving 1901 train clips while keeping `spk06` validation
+  unchanged.
+- Run `notebooks/lipreading_lrw_landmark_dataset_v3_multiseed_colab.ipynb` with
+  the fixed LRW-pretrained + balanced BiGRU protocol and compare dataset v3
+  against dataset v2 by paired validation macro-F1 over the same three seeds.
+- Keep test data closed until the dataset v3 validation decision is recorded.
 - Use `reports/FINAL_MODEL_RESULTS.md` for the coursework results section.
 
 The detailed collection and evaluation plan is in `data/DATASET_V2_PLAN.md`.

@@ -106,3 +106,20 @@ check, high-loss/wrong-prediction CSV и contact sheets. Вручную прос
    training protocol.
 4. Сравнить v1 и v2 по validation macro-F1, balanced accuracy и per-class recall.
 5. После этого решить, нужен ли более сложный LRW-style temporal backend.
+
+## Продолжение: Dataset V3
+
+После завершения экспериментов dataset v2 подготовлено расширение train-части:
+
+- добавлены четыре новых анонимизированных train-спикера;
+- обработано по 50 минут речи каждого спикера, всего 200 минут и 40 чанков;
+- WebMAUS успешно создал 40 из 40 TextGrid;
+- нарезано 817 word-level клипов, автоматическая проверка оставила 816;
+- landmark preprocessing создал 816 из 816 mouth ROI размером 96x96;
+- итоговый train содержит 1901 клип и 9 спикеров;
+- validation не изменён: 105 клипов спикера `spk06`;
+- test в архив настройки dataset v3 не включён.
+
+Следующий controlled experiment меняет только train-данные. Архитектура,
+balanced sampler, validation split, три seed и выбор по macro-F1 остаются теми
+же, что в лучшем landmark dataset v2 эксперименте.
