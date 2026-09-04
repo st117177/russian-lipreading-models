@@ -1,0 +1,4 @@
+seed,best_epoch,validation_macro_f1,baseline_macro_f1,paired_delta,epochs_completed,training_seconds
+42,5,0.574952,0.545393,0.029559,12,5.907527
+123,7,0.569438,0.560324,0.009114,14,7.297457
+2026,17,0.587999,0.547428,0.040571,24,12.385456

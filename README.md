@@ -491,11 +491,16 @@ The Kaggle notebook reads data from `/kaggle/input` and saves checkpoints to
 - Use `uniform_shuffle` for the next dataset v3 training run. The sampler
   result is validation-only and does not replace the already frozen final-test
   result.
-- Run `notebooks/lipreading_lrw_layer4_finetune_dataset_v3_colab.ipynb` as the
-  next controlled model experiment. It first reproduces the frozen seed-42
-  baseline from cached features, then unfreezes only `ResNet18.layer4` and uses
-  a smaller learning rate for that block. Keep the change only if validation
-  macro-F1 improves by at least `0.02`; run three seeds only after that gate.
+- Treat the `ResNet18.layer4` fine-tuning gate as complete. The best seed-42
+  validation macro-F1 was `0.5545` versus `0.5454` for the frozen baseline, a
+  gain of only `+0.0092`; train macro-F1 approached `1.0`, so the encoder remains
+  frozen.
+- Treat frozen horizontal-flip augmentation as a positive validation result.
+  `notebooks/lipreading_lrw_frozen_hflip_dataset_v3_colab.ipynb` reached mean
+  validation macro-F1 `0.5775 +/- 0.0095`, improved all three paired seeds, and
+  produced a mean paired gain of `+0.0264` over `uniform_shuffle`.
+- Keep horizontal flip for the next candidate training run, but do not reuse the
+  already viewed final test to tune or select this candidate.
 - Keep test data closed until the dataset v3 validation decision is recorded.
 - Use `reports/FINAL_MODEL_RESULTS.md` for the coursework results section.
 
