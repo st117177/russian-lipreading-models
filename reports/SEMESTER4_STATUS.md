@@ -783,3 +783,30 @@ Decision gate пройден: horizontal flip сохраняется как по
 `notebooks/lipreading_lrw_frozen_hflip_dataset_v3_colab.ipynb`. Числа сохранены
 в `reports/results/dataset_v3_frozen_hflip_*.csv`. Результат пока относится только
 к validation и не заменяет уже замороженную final-test оценку.
+
+## Dataset v3: cross-speaker проверка horizontal flip
+
+Чтобы не принимать решение только по одному validation-спикеру `spk06`, проведена
+дополнительная проверка на трех спикерах из train. `spk03`, `spk17` и `spk19`
+по очереди полностью исключались из обучения и использовались как unseen-speaker
+validation. У каждого из них есть примеры всех десяти слов. Для каждого fold
+сравнивались original features и original + hflip по seed 42, 123 и 2026.
+
+Итог по девяти парным сравнениям:
+
+- original mean macro-F1: `0.3727`;
+- original + hflip mean macro-F1: `0.3900`;
+- средний парный прирост: `+0.0173`;
+- hflip выиграл в 6 из 9 сравнений;
+- разброс парной разницы: `0.0571`.
+
+Horizontal flip подтвержден как небольшая полезная аугментация, но эффект заметно
+зависит от спикера и seed. Особенно сложным оказался `spk19`: macro-F1 составлял
+примерно `0.22-0.28`. Это подтверждает, что основное ограничение системы сейчас -
+speaker generalization, а не неработающий training loop.
+
+Notebook: `notebooks/lipreading_lrw_frozen_hflip_cross_speaker_colab.ipynb`.
+Числа: `reports/results/dataset_v3_cross_speaker_hflip_*.csv`. Final test не
+загружался и не использовался. Следующая изолированная проверка - заменить только
+temporal head `BiGRU` на компактный `TCN`, оставив frozen LRW features, hflip,
+folds и seeds неизменными.

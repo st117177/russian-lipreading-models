@@ -1,0 +1,2 @@
+folds,seeds_per_fold,original_macro_f1_mean,hflip_macro_f1_mean,paired_delta_mean,paired_delta_std,hflip_wins,comparisons
+3,3,0.372703,0.390018,0.017316,0.057050,6,9

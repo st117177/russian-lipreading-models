@@ -501,6 +501,15 @@ The Kaggle notebook reads data from `/kaggle/input` and saves checkpoints to
   produced a mean paired gain of `+0.0264` over `uniform_shuffle`.
 - Keep horizontal flip for the next candidate training run, but do not reuse the
   already viewed final test to tune or select this candidate.
+- Treat the cross-speaker hflip check as complete. Holding out `spk03`, `spk17`,
+  and `spk19` in turn, hflip improved mean macro-F1 from `0.3727` to `0.3900`,
+  a paired gain of `+0.0173`, and won 6 of 9 fold-seed comparisons. The effect
+  is positive but noisy, so it remains a modest augmentation rather than the
+  main source of model quality.
+- Use `notebooks/lipreading_lrw_frozen_hflip_cross_speaker_colab.ipynb` to
+  reproduce this check. It never loads the final test split.
+- Next compare the current hflip BiGRU with a compact TCN temporal head on the
+  same frozen LRW features and cross-speaker folds.
 - Keep test data closed until the dataset v3 validation decision is recorded.
 - Use `reports/FINAL_MODEL_RESULTS.md` for the coursework results section.
 
