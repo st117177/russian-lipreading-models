@@ -1,0 +1,6 @@
+variant,clips,speakers,macro_f1_mean,macro_f1_std,accuracy_mean,macro_f1_delta_vs_base,wins_vs_base
+base_v2,1085,5,0.535900,0.013868,0.546033,0.000000,0
+base_plus_spk16,1408,6,0.533733,0.044024,0.546033,-0.002167,2
+base_plus_spk17,1245,6,0.482700,0.017413,0.485700,-0.053200,0
+base_plus_spk18,1257,6,0.462967,0.076650,0.450800,-0.072933,1
+base_plus_spk19,1246,6,0.526833,0.013934,0.523800,-0.009067,0

@@ -479,9 +479,18 @@ The Kaggle notebook reads data from `/kaggle/input` and saves checkpoints to
   LRW-pretrained + balanced BiGRU protocol, dataset v3 reached validation
   macro-F1 `0.5091 +/- 0.0214` versus `0.5359 +/- 0.0139` for dataset v2 and
   lost on all three paired seeds.
-- Run `notebooks/lipreading_dataset_v3_speaker_ablation_colab.ipynb` on the
-  cached LRW features to measure each new train speaker separately before
-  deciding which speakers belong in the next dataset version.
+- Treat the dataset v3 single-speaker GPU ablation as complete. The unchanged
+  dataset v2 control reproduced `0.5359 +/- 0.0139` macro-F1. No new speaker
+  improved the mean: `spk16` was closest at `0.5337 +/- 0.0440` and won two of
+  three paired seeds, while `spk17`, `spk18`, and `spk19` reduced the mean.
+- Treat the dataset v3 sampler ablation as complete. `uniform_shuffle` reached
+  validation macro-F1 `0.5510 +/- 0.0081`, compared with `0.5091 +/- 0.0214`
+  for the previous `speaker_word_inverse` sampler. It improved every paired
+  seed, with a mean delta of `+0.0420`. The simpler shuffle also avoids heavily
+  repeating speaker-word groups that contain only one to four clips.
+- Use `uniform_shuffle` for the next dataset v3 training run. The sampler
+  result is validation-only and does not replace the already frozen final-test
+  result.
 - Keep test data closed until the dataset v3 validation decision is recorded.
 - Use `reports/FINAL_MODEL_RESULTS.md` for the coursework results section.
 

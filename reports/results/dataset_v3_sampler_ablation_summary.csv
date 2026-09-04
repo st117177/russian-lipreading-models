@@ -1,0 +1,5 @@
+strategy,macro_f1_mean,macro_f1_std,accuracy_mean,balanced_accuracy_mean,macro_f1_delta_vs_current
+speaker_word_inverse,0.509077,0.021393,0.530159,0.549185,0.000000
+speaker_word_sqrt,0.520120,0.056238,0.530159,0.542355,0.011043
+word_inverse,0.548710,0.082148,0.552381,0.573400,0.039633
+uniform_shuffle,0.551049,0.008097,0.561905,0.586967,0.041971
