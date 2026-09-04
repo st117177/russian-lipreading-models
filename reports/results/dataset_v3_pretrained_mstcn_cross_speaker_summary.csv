@@ -1,0 +1,2 @@
+folds,seeds_per_fold,bigru_hflip_macro_f1_mean,pretrained_mstcn_macro_f1_mean,paired_delta_mean,paired_delta_std,mstcn_wins,comparisons,decision
+3,3,0.3900182222222222,0.5831770777404466,0.19315885551822426,0.10675412653756972,8,9,KEEP PRETRAINED MS-TCN

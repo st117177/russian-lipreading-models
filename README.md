@@ -508,8 +508,18 @@ The Kaggle notebook reads data from `/kaggle/input` and saves checkpoints to
   main source of model quality.
 - Use `notebooks/lipreading_lrw_frozen_hflip_cross_speaker_colab.ipynb` to
   reproduce this check. It never loads the final test split.
-- Next compare the current hflip BiGRU with a compact TCN temporal head on the
-  same frozen LRW features and cross-speaker folds.
+- Treat the official LRW-pretrained MS-TCN transfer experiment as complete.
+  Across held-out `spk03`, `spk17`, and `spk19` and three seeds, the frozen
+  pretrained MS-TCN plus a new linear classifier reached mean macro-F1
+  `0.5832`, versus `0.3900` for the hflip BiGRU. The mean paired gain was
+  `+0.1932`, and MS-TCN won 8 of 9 comparisons.
+- Use
+  `notebooks/lipreading_lrw_pretrained_mstcn_transfer_cross_speaker_colab.ipynb`
+  to reproduce the comparison. It uses the official pretrained temporal
+  backend and never loads the final test split.
+- Keep the pretrained MS-TCN as the leading validation candidate. The next
+  decision should be whether to freeze this result for the coursework or
+  collect a genuinely new untouched test before one final evaluation.
 - Keep test data closed until the dataset v3 validation decision is recorded.
 - Use `reports/FINAL_MODEL_RESULTS.md` for the coursework results section.
 

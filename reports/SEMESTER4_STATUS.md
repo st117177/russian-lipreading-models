@@ -810,3 +810,31 @@ Notebook: `notebooks/lipreading_lrw_frozen_hflip_cross_speaker_colab.ipynb`.
 загружался и не использовался. Следующая изолированная проверка - заменить только
 temporal head `BiGRU` на компактный `TCN`, оставив frozen LRW features, hflip,
 folds и seeds неизменными.
+
+## Dataset v3: transfer официального pretrained MS-TCN
+
+Вместо случайно инициализированного компактного TCN использован temporal backend
+из официального LRW checkpoint. Frozen LRW visual frontend сначала формирует
+последовательность признаков `[24, 512]`, pretrained multi-scale TCN преобразует
+ее в pooled embedding размерности 768, а на наших десяти словах обучается только
+новый линейный классификатор. Веса visual frontend и MS-TCN не обновляются.
+
+Эксперимент проведен на тех же held-out спикерах `spk03`, `spk17`, `spk19` и
+seed 42, 123, 2026. В train использовались original + hflip признаки; final test
+не загружался.
+
+- hflip BiGRU mean macro-F1: `0.3900`;
+- pretrained MS-TCN mean macro-F1: `0.5832`;
+- средний парный прирост: `+0.1932`;
+- pretrained MS-TCN выиграл 8 из 9 сравнений;
+- единственное формальное поражение: `spk17`, seed 123, разница `-0.0006`.
+
+По отдельным held-out спикерам MS-TCN достиг примерно `0.657-0.699` на `spk03`,
+`0.526-0.551` на `spk17` и `0.504-0.538` на ранее особенно сложном `spk19`.
+Все запуски предсказывали десять классов. Decision gate пройден, поэтому
+официальный pretrained MS-TCN становится ведущей validation-кандидатурой.
+
+Notebook:
+`notebooks/lipreading_lrw_pretrained_mstcn_transfer_cross_speaker_colab.ipynb`.
+Полные результаты:
+`reports/results/dataset_v3_pretrained_mstcn_cross_speaker_*.csv`.
