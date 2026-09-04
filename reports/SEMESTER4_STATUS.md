@@ -734,3 +734,18 @@ cache, validation-спикер и training protocol не менялись; ме�
 Для следующего dataset v3 запуска выбран `uniform_shuffle`. Результат относится
 только к validation; final test не загружался и не использовался. Полные числа
 сохранены в `reports/results/dataset_v3_sampler_ablation_*.csv`.
+
+## Следующий эксперимент: partial fine-tuning LRW encoder
+
+Подготовлен
+`notebooks/lipreading_lrw_layer4_finetune_dataset_v3_colab.ipynb`. Он сначала
+воспроизводит frozen LRW + BiGRU baseline с `uniform_shuffle` и seed 42 на
+сохраненных признаках. Затем размораживается только последний блок
+`ResNet18.layer4`; LRW frontend и более ранние блоки остаются frozen, а
+BatchNorm не обновляет статистики на маленьких batch.
+
+Это single-seed decision gate. Partial fine-tuning сохраняется как основное
+направление только при улучшении validation macro-F1 минимум на `0.02`.
+При успехе тот же протокол повторяется на seed 123 и 2026. При неуспехе frozen
+encoder остается основной моделью, а следующим отдельным экспериментом будет
+легкая spatial/temporal augmentation. Test split в этом notebook не читается.

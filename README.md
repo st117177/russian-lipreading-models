@@ -491,6 +491,11 @@ The Kaggle notebook reads data from `/kaggle/input` and saves checkpoints to
 - Use `uniform_shuffle` for the next dataset v3 training run. The sampler
   result is validation-only and does not replace the already frozen final-test
   result.
+- Run `notebooks/lipreading_lrw_layer4_finetune_dataset_v3_colab.ipynb` as the
+  next controlled model experiment. It first reproduces the frozen seed-42
+  baseline from cached features, then unfreezes only `ResNet18.layer4` and uses
+  a smaller learning rate for that block. Keep the change only if validation
+  macro-F1 improves by at least `0.02`; run three seeds only after that gate.
 - Keep test data closed until the dataset v3 validation decision is recorded.
 - Use `reports/FINAL_MODEL_RESULTS.md` for the coursework results section.
 
