@@ -1,0 +1,2 @@
+folds,seeds_per_fold,bigru_hflip_macro_f1_mean,pretrained_dctcn_macro_f1_mean,paired_delta_mean,paired_delta_std,dctcn_wins,comparisons,decision
+3,3,0.3900182222222222,0.2833740760002201,-0.10664414622200218,0.06780287392077072,0,9,KEEP BiGRU

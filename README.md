@@ -520,6 +520,13 @@ The Kaggle notebook reads data from `/kaggle/input` and saves checkpoints to
 - Keep the pretrained MS-TCN as the leading validation candidate. The next
   decision should be whether to freeze this result for the coursework or
   collect a genuinely new untouched test before one final evaluation.
+- Treat the official pretrained DC-TCN transfer experiment as complete. It
+  reached mean validation macro-F1 `0.2834` versus `0.3900` for hflip BiGRU,
+  lost all 9 paired comparisons, and is rejected by the decision gate.
+- Use
+  `notebooks/lipreading_lrw_pretrained_dctcn_transfer_cross_speaker_colab.ipynb`
+  and the two `reports/results/dataset_v3_pretrained_dctcn_transfer_*.csv`
+  files to reproduce and inspect this validation-only result.
 - Keep test data closed until the dataset v3 validation decision is recorded.
 - Use `reports/FINAL_MODEL_RESULTS.md` for the coursework results section.
 

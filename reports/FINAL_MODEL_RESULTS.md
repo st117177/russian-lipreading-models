@@ -237,3 +237,28 @@ Validation-only regularization и partial fine-tuning не дали достат
 в дополнительной cross-speaker проверке. Улучшение подтверждено, но заметно
 меняется между спикерами и seed. Уже просмотренный final test повторно
 использовать для выбора модели нельзя.
+
+## Transfer pretrained DC-TCN
+
+Отдельно проверен официальный LRW-pretrained densely connected temporal
+convolutional backend (DC-TCN). Visual frontend, dataset v3, horizontal flip,
+held-out speakers, seeds и линейный классификатор оставались теми же, что в
+предыдущем контроле с hflip BiGRU. Обучались только десять выходных классов;
+final test не загружался.
+
+| Модель | Mean validation macro-F1 | Парная разница | Победы |
+|---|---:|---:|---:|
+| Hflip BiGRU | 0.3900 | -- | -- |
+| Official pretrained DC-TCN | 0.2834 | -0.1066 | 0/9 |
+
+DC-TCN уступил BiGRU во всех девяти сравнениях: по `spk03` macro-F1 составил
+`0.2980-0.3297`, по `spk17` `0.2971-0.3293`, по `spk19` `0.2020-0.2326`.
+Более сложный temporal backend не перенёсся на небольшой русскоязычный набор.
+Поэтому decision gate отклоняет DC-TCN, а hflip BiGRU остаётся компактным
+кандидатом; ранее выбранный pretrained MS-TCN по-прежнему является лидирующим
+validation-вариантом.
+
+Полные результаты:
+`reports/results/dataset_v3_pretrained_dctcn_transfer_cross_speaker_runs.csv` и
+`reports/results/dataset_v3_pretrained_dctcn_transfer_cross_speaker_summary.csv`.
+Notebook: `notebooks/lipreading_lrw_pretrained_dctcn_transfer_cross_speaker_colab.ipynb`.

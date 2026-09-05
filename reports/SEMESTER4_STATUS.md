@@ -838,3 +838,19 @@ Notebook:
 `notebooks/lipreading_lrw_pretrained_mstcn_transfer_cross_speaker_colab.ipynb`.
 Полные результаты:
 `reports/results/dataset_v3_pretrained_mstcn_cross_speaker_*.csv`.
+
+## Dataset v3: transfer официального pretrained DC-TCN
+
+Проверен официальный LRW-pretrained Dense Temporal Convolutional Network как
+замена hflip BiGRU. Данные, held-out speakers, seed и линейная голова были
+зафиксированы; final test не загружался.
+
+- hflip BiGRU mean validation macro-F1: `0.3900`;
+- pretrained DC-TCN mean validation macro-F1: `0.2834`;
+- средняя парная разница: `-0.1066`;
+- DC-TCN выиграл `0 из 9` сравнений;
+- decision gate: `KEEP BiGRU`.
+
+Более сложный pretrained DC-TCN не перенёсся на маленький русский набор и
+отклонён. Ведущим validation-кандидатом остаётся pretrained MS-TCN; final test
+по-прежнему не используется для настройки.
