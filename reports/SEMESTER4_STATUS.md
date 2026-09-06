@@ -178,6 +178,16 @@ trained grayscale CNN+BiGRU
 -> per-clip loss and prediction
 -> high-loss CSV files
 -> wrong-prediction CSV files
+
+## Последний validation-only эксперимент
+
+Для pretrained LRW MS-TCN проверили temporal masking: в половине train-примеров
+занулялся случайный блок из четырех соседних кадров. На каждом из трех held-out
+спикеров (`spk03`, `spk17`, `spk19`) запускали три seed. Обычный pretrained
+MS-TCN получил mean validation macro-F1 `0.5832`, masked-вариант — `0.5391`.
+Парная разница составила `-0.0441 +/- 0.0271`, masked-вариант выиграл `0/9`
+сравнений. Поэтому основной моделью остается MS-TCN без temporal masking.
+Эксперимент не использовал test split.
 -> contact sheets for quick visual review
 ```
 
@@ -854,3 +864,23 @@ Notebook:
 Более сложный pretrained DC-TCN не перенёсся на маленький русский набор и
 отклонён. Ведущим validation-кандидатом остаётся pretrained MS-TCN; final test
 по-прежнему не используется для настройки.
+
+## Dataset v3: temporal masking для MS-TCN
+
+После выбора pretrained MS-TCN проверили регуляризацию по времени: в 50% train-
+примеров занулялся случайный блок из четырех соседних кадров. Для честного
+сравнения использовались три held-out спикера (`spk03`, `spk17`, `spk19`) и три
+seed; validation оставалась без маскирования.
+
+- обычный pretrained MS-TCN: mean validation macro-F1 `0.5832`;
+- temporal masking: mean validation macro-F1 `0.5391`;
+- парная разница: `-0.0441 +/- 0.0271`;
+- masked-вариант выиграл `0 из 9` сравнений.
+
+Decision gate: `KEEP UNMASKED MS-TCN`. Temporal masking не используется в
+финальной конфигурации, но сохраняется как отрицательный контролируемый
+эксперимент. Test split не загружался.
+
+Результаты сохранены в:
+`reports/results/dataset_v3_pretrained_mstcn_temporal_masking_runs.csv` и
+`reports/results/dataset_v3_pretrained_mstcn_temporal_masking_summary.csv`.

@@ -1,0 +1,2 @@
+folds,seeds_per_fold,unmasked_mstcn_macro_f1_mean,masked_mstcn_macro_f1_mean,paired_delta_mean,paired_delta_std,masked_mstcn_wins,comparisons
+3,3,0.5831771111,0.5390756291,-0.0441014820,0.0270607198,0,9

@@ -520,6 +520,14 @@ The Kaggle notebook reads data from `/kaggle/input` and saves checkpoints to
 - Keep the pretrained MS-TCN as the leading validation candidate. The next
   decision should be whether to freeze this result for the coursework or
   collect a genuinely new untouched test before one final evaluation.
+- Treat temporal masking for the pretrained MS-TCN as a completed negative
+  ablation. Masking four consecutive frames in 50% of train examples reached
+  mean validation macro-F1 `0.5391` versus `0.5832` without masking, with a
+  paired delta of `-0.0441` and `0/9` wins. Keep the simpler unmasked MS-TCN.
+- Use
+  `notebooks/lipreading_lrw_pretrained_mstcn_temporal_masking_cross_speaker_colab.ipynb`
+  and `reports/results/dataset_v3_pretrained_mstcn_temporal_masking_*.csv` to
+  reproduce this validation-only ablation. It never loads the final test split.
 - Treat the official pretrained DC-TCN transfer experiment as complete. It
   reached mean validation macro-F1 `0.2834` versus `0.3900` for hflip BiGRU,
   lost all 9 paired comparisons, and is rejected by the decision gate.
