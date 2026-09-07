@@ -158,3 +158,46 @@ P1 запускается только после того, как sample CSV ov
 - [Ma et al., 2021, DC-TCN](https://openaccess.thecvf.com/content/WACV2021/html/Ma_Lip-Reading_With_Densely_Connected_Temporal_Convolutional_Networks_WACV_2021_paper.html) — близкая temporal-convolutional альтернатива; в проекте фактически проиграла контроль, поэтому усложнение не оправдано.
 - [Yeo et al., 2024, low-resource visual speech](https://arxiv.org/abs/2309.08535) и [код](https://github.com/JeongHun0716/vsr-low) — перенос и автоматическая разметка для малоресурсных условий; требует другой постановки и не является дешёвым следующим шагом здесь.
 - [Wu et al., 2024, Landmark-Guided Cross-Speaker Lip Reading](https://aclanthology.org/2024.lrec-main.876/) — релевантна проблеме межспикерской генерализации и поддерживает анализ landmark/identity факторов; размеры, язык и протокол не совпадают.
+
+## 10. Актуальный статус на 7 сентября 2026 года
+
+Текущий лидер по cross-speaker validation — frozen LRW visual frontend +
+pretrained MS-TCN: mean macro-F1 `0.5832` по трём held-out speakers и трём
+seed. Temporal masking и DC-TCN отклонены; дополнительное fine-tuning `layer4`
+не дало достаточного прироста. Новую архитектуру сейчас добавлять не нужно.
+
+Локальный архив `colab_lipreading_moderate_v3_raw_split.zip` содержит отдельный
+кандидат boundary-варианта: 818 клипов четырёх новых спикеров (`spk16`--`spk19`)
+с train/validation/test `484/172/162`. Это не результат текущего MS-TCN
+сравнения и не замена dataset v3: moderate-вариант подготовлен для отдельной
+проверки временных границ, поэтому его нельзя молча подмешивать в существующие
+кэши признаков или сравнивать с результатами из `FINAL_MODEL_RESULTS.md`.
+
+На данный момент кодовая часть для следующего запуска готова:
+
+1. архив и пути проверены локально, в ZIP нет Windows-разделителей и битых
+   записей;
+2. создан единый notebook
+   `notebooks/lipreading_moderate_landmark_prep_colab.ipynb` для подготовки
+   landmark crops и split CSV в Colab;
+3. notebook
+   `notebooks/lipreading_lrw_pretrained_mstcn_posthoc_final_test_colab.ipynb`
+   предназначен для одного post-hoc inference на 508-clip final test;
+4. локальная автоматизация не меняется и не создаёт новых дубликатов старых
+   скриптов.
+
+Сейчас есть один внешний блокер: moderate archive ещё не загружен в Google
+Drive, а встроенное окно выбора файла в текущем Codex-браузере не передаёт
+локальные файлы. Поэтому обучение или final-test inference в этой сессии не
+запускались. После загрузки архива вручную в Drive следующий запуск должен
+быть именно подготовкой moderate landmark crops; после её успешного завершения
+выбирается один из двух честных вариантов:
+
+- использовать текущий dataset v3 и выполнить зафиксированный P1 post-hoc
+  benchmark MS-TCN на final test;
+- если boundary review подтвердит системную проблему, сначала повторить только
+  затронутый preprocessing на moderate-варианте и затем сравнить его с v3 на
+  одинаковом validation protocol.
+
+До выполнения одного из этих вариантов новые модели, новые seeds и повторное
+расширение датасета не запускаются: они не дадут интерпретируемого улучшения.
