@@ -288,6 +288,11 @@ and selects the best checkpoint by validation macro-F1. It saves the checkpoint,
 history, per-class report, validation predictions, curves, and confusion matrix
 to Google Drive. The test split is deliberately not evaluated.
 
+The same notebook also accepts the moderate landmark archive produced by
+`lipreading_moderate_landmark_prep_colab.ipynb`. It detects
+`ml_splits_landmark_moderate_v3`, writes results to a separate Drive directory,
+and keeps the legacy padded baseline untouched.
+
 To compare the old heuristic ROI with landmark-aligned preprocessing while
 keeping the LRW-pretrained model and training protocol fixed, use:
 
