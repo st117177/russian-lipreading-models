@@ -1,0 +1,1 @@
+source_video,speaker_id,word_a,word_b,clip_id_a,clip_id_b,clip_file_a,clip_file_b,start_sec_a,end_sec_a,start_sec_b,end_sec_b,duration_sec_a,duration_sec_b,overlap_sec,overlap_ratio_shorter,overlap_start_sec,overlap_end_sec

@@ -12,11 +12,12 @@ from __future__ import annotations
 
 import argparse
 import csv
+import os
+import shutil
 import subprocess
+import sys
 from dataclasses import dataclass
 from pathlib import Path
-
-import imageio_ffmpeg
 
 FORBIDDEN_CHARS = '<>:"/\\|?*'
 SILENCE_LABELS = {
@@ -46,6 +47,32 @@ def sanitize_path_part(value: str) -> str:
     cleaned = "".join("_" if ch in FORBIDDEN_CHARS else ch for ch in value.strip())
     cleaned = cleaned.strip(". ")
     return cleaned or "_"
+
+
+def get_ffmpeg_exe(explicit: str | None = None) -> str:
+    """Find ffmpeg for both the standalone and batch clipping commands."""
+    candidates = [
+        explicit,
+        os.environ.get("FFMPEG_BINARY"),
+        shutil.which("ffmpeg"),
+        r"C:\Users\Sobaka\AppData\Local\Programs\ffmpeg\ffmpeg.exe",
+    ]
+    for candidate in candidates:
+        if not candidate:
+            continue
+        if explicit and candidate == explicit:
+            return str(candidate)
+        try:
+            if Path(candidate).is_file():
+                return str(candidate)
+        except OSError:
+            # A protected Windows install can still be executable by subprocess.
+            if Path(candidate).is_absolute():
+                return str(candidate)
+        resolved = shutil.which(candidate)
+        if resolved:
+            return resolved
+    raise RuntimeError("ffmpeg was not found. Install it or pass --ffmpeg-exe.")
 
 
 def is_silence(label: str) -> bool:
@@ -165,7 +192,18 @@ def cut_segment(
         str(output_path),
     ])
 
-    subprocess.run(cmd, check=True)
+    try:
+        subprocess.run(
+            cmd,
+            check=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+    except subprocess.CalledProcessError as exc:
+        if exc.stderr:
+            print(exc.stderr, file=sys.stderr)
+        raise
 
 
 def write_manifest(path: Path, rows: list[dict[str, str]]) -> None:
@@ -206,11 +244,12 @@ def main() -> int:
     parser.add_argument("--clip-prefix", default=None)
     parser.add_argument("--manifest", type=Path, default=None)
     parser.add_argument("--copy-codecs", action="store_true")
+    parser.add_argument("--ffmpeg-exe", default=None)
     parser.add_argument("--preset", default="veryfast")
     parser.add_argument("--low-memory-x264", action="store_true")
     args = parser.parse_args()
 
-    ffmpeg_exe = imageio_ffmpeg.get_ffmpeg_exe()
+    ffmpeg_exe = get_ffmpeg_exe(args.ffmpeg_exe)
     labels = load_words_frames(args.words_frames)
     # -> получили список labels (подписей на каждый кадр)
     segments = build_segments(labels, min_frames=args.min_frames)

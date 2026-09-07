@@ -43,8 +43,8 @@ YouTube links
 | `batch_submit_webmaus_basic.py` | edited for 4th semester | Batch wrapper for WebMAUS submission with speaker filtering, timeout handling, and per-file error isolation. | `iter_batch_items`, `find_text_files`, `pick_signal_for_text` |
 | `get_phonewords_frames.py` | 3rd semester | Converts TextGrid word intervals to frame-level labels. | `make_words_frames_file`, `make_phonemes_frames_file`, `map_unknown_label` |
 | `batch_generate_phonewords_frames.py` | edited for 4th semester | Batch wrapper for TextGrid to `words_frames.txt`; resolves the original script and phoneme dictionary relative to the repository. | `FrameJob`, `iter_jobs`, `run_job`, `get_fps`, `pick_textgrid` |
-| `cut_ru_clips_from_words_frames.py` | 3rd semester | Cuts word-level clips from video using `words_frames.txt`. | `Segment`, `load_words_frames`, `build_segments`, `cut_segment`, `write_manifest` |
-| `batch_cut_ru_clips_from_words_frames.py` | edited for 4th semester | Batch wrapper for cutting many word clips. Adds padded timing, repeatable speaker filtering, and OpenCV duration detection. | `get_fps`, `get_duration_sec`, `load_vocab`, `pick_video` |
+| `cut_ru_clips_from_words_frames.py` | edited for 4th semester | Cuts word-level clips from video using `words_frames.txt`; now shares an ffmpeg executable resolver with the batch wrapper. | `Segment`, `load_words_frames`, `build_segments`, `cut_segment`, `get_ffmpeg_exe`, `write_manifest` |
+| `batch_cut_ru_clips_from_words_frames.py` | edited for 4th semester | Batch wrapper for cutting many word clips. Adds padded/tight timing, repeatable speaker filtering, and an ffmpeg metadata fallback when OpenCV is unavailable. | `probe_video`, `load_vocab`, `pick_video` |
 | `build_labels_from_clips.py` | new for 4th semester | Builds CSV labels from the generated clip folder tree. | `collect_rows`, `get_clip_duration_sec`, `detect_source`, `write_labels` |
 | `quality_check_clips.py` | new for 4th semester | Checks clip duration/readability/face detection, writes clean labels, and creates contact sheets labeled by `clip_id`. | `analyze_clip`, `detect_faces`, `write_clean_labels`, `make_contact_sheet`, `write_report` |
 | `audit_padded_overlap.py` | new for 4th semester | Read-only audit of different-word overlaps introduced by padded intervals; writes a complete pair table, a deterministic review sample, and a Markdown report. | `find_overlaps`, `select_review_sample`, `write_report` |
@@ -71,3 +71,17 @@ The semester-3 `get_phonewords_frames.py` foundation and the compatible
 [Ustelemov/LipReading-RussianLang](https://github.com/Ustelemov/LipReading-RussianLang)
 project used as inspiration for the original coursework. Semester-4 batch wrappers
 call the local script directly; they do not require a second external copy.
+
+## Boundary Ablation Example
+
+The same batch script can build comparable timing variants from the same
+`words_frames.txt`. The command parameters are recorded in
+`reports/BOUNDARY_ABLATION_V3.md`.
+
+- tight: `--padding-frames 0 --start-padding-sec 0 --end-padding-sec 0`;
+- moderate: `--padding-frames 1 --start-padding-sec 0.08 --end-padding-sec 0.08`;
+- padded: `--padding-frames 3 --start-padding-sec 0.20 --end-padding-sec 0.30`.
+
+The variants are separate local outputs. The script does not delete old clips,
+and overlap reports are used to decide which manifest is suitable for the next
+model run.

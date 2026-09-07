@@ -3,40 +3,44 @@ from __future__ import annotations
 
 import argparse
 import csv
+import re
+import subprocess
 import sys
 from pathlib import Path
-
-import cv2
-import imageio_ffmpeg
-
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(SCRIPT_DIR))
 
-from cut_ru_clips_from_words_frames import build_segments, cut_segment, load_words_frames, sanitize_path_part
+from cut_ru_clips_from_words_frames import (
+    build_segments,
+    cut_segment,
+    get_ffmpeg_exe,
+    load_words_frames,
+    sanitize_path_part,
+)
 
 
-def get_fps(video_path: Path) -> float:
-    cap = cv2.VideoCapture(str(video_path))
-    try:
-        fps = cap.get(cv2.CAP_PROP_FPS) or 0.0
-    finally:
-        cap.release()
-    if fps <= 0:
-        raise RuntimeError(f"Could not read FPS from {video_path}")
-    return fps
-
-
-def get_duration_sec(video_path: Path) -> float:
-    cap = cv2.VideoCapture(str(video_path))
-    try:
-        fps = cap.get(cv2.CAP_PROP_FPS) or 0.0
-        frame_count = cap.get(cv2.CAP_PROP_FRAME_COUNT) or 0.0
-    finally:
-        cap.release()
-    if fps <= 0 or frame_count <= 0:
-        raise RuntimeError(f"Could not read duration from {video_path}")
-    return frame_count / fps
+def probe_video(video_path: Path, ffmpeg_exe: str) -> tuple[float, float]:
+    result = subprocess.run(
+        [ffmpeg_exe, "-hide_banner", "-i", str(video_path)],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        check=False,
+    )
+    metadata = result.stderr
+    duration_match = re.search(
+        r"Duration:\s*(\d+):(\d+):(\d+(?:\.\d+)?)", metadata
+    )
+    fps_match = re.search(r"(\d+(?:\.\d+)?)\s+fps", metadata)
+    if not duration_match or not fps_match:
+        raise RuntimeError(f"Could not read FPS/duration from {video_path}")
+    hours, minutes, seconds = duration_match.groups()
+    duration = int(hours) * 3600 + int(minutes) * 60 + float(seconds)
+    fps = float(fps_match.group(1))
+    if fps <= 0 or duration <= 0:
+        raise RuntimeError(f"Invalid FPS/duration for {video_path}")
+    return fps, duration
 
 
 def pick_video(chunk_dir: Path) -> Path | None:
@@ -64,6 +68,7 @@ def main() -> int:
     parser.add_argument("--end-padding-sec", type=float, default=0.30)
     parser.add_argument("--max-duration-sec", type=float, default=2.0)
     parser.add_argument("--copy-codecs", action="store_true")
+    parser.add_argument("--ffmpeg-exe", default=None)
     parser.add_argument(
         "--speaker-id",
         action="append",
@@ -74,7 +79,7 @@ def main() -> int:
 
     vocab = load_vocab(args.vocab)
     speaker_ids = set(args.speaker_id or [])
-    ffmpeg_exe = imageio_ffmpeg.get_ffmpeg_exe()
+    ffmpeg_exe = get_ffmpeg_exe(args.ffmpeg_exe)
     rows: list[dict[str, str]] = []
     made = 0
     skipped = 0
@@ -89,8 +94,7 @@ def main() -> int:
         if video_path is None:
             skipped += 1
             continue
-        fps = get_fps(video_path)
-        source_duration = get_duration_sec(video_path)
+        fps, source_duration = probe_video(video_path, ffmpeg_exe)
         labels = [label.lower().replace("ё", "е") for label in load_words_frames(wf)]
         for idx, segment in enumerate(build_segments(labels, min_frames=args.min_frames), start=1):
             word = segment.word.lower().replace("ё", "е")
