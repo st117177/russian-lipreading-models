@@ -899,3 +899,13 @@ Decision gate: `KEEP UNMASKED MS-TCN`. Temporal masking не используе�
 наборе, а не независимым доказательством улучшения. Архивы для запуска:
 `colab_lipreading_dataset_v3_train_val.zip` и
 `colab_lipreading_final_test_landmark_v3.zip`.
+
+Перед запуском notebook теперь выполняет preflight-проверки: схема CSV,
+уникальность клипов, слова из общего словаря, положительная длительность,
+наличие файлов, соответствие `clip_id` кэшу и конечность признаков. Внутри
+эксперимента используется `num_workers=0`, фиксированный порядок test-клипов
+и отдельный seed для перемешивания train. Помимо метрик сохраняются
+`posthoc_mstcn_protocol.json`, предсказания по каждому клипу,
+`posthoc_mstcn_final_test_confusion_matrix.csv` и README с ограничениями
+интерпретации. Это делает запуск воспроизводимым, но не превращает уже
+просмотренный test в независимый hold-out.
