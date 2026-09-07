@@ -5,7 +5,9 @@
 `semester4_coursework/dataset_local/ru_dataset/05_colab_package/colab_lipreading_moderate_v3_prep.zip`
 
 Размер около 120 MB. Внутри находятся 818 raw word clips, speaker split
-`train/val/test`, `vocab.txt`, `README.md` и `tools/create_landmark_mouth_crops.py`.
+`train/val/test`, `vocab.txt`, `README.md` и три уже существующих инструмента:
+`tools/create_landmark_mouth_crops.py`, `tools/create_ml_splits.py` и
+`tools/package_ml_dataset.py`.
 
 ## Шаги в Colab
 
@@ -79,6 +81,40 @@ print(landmark_df['landmark_detection_ratio'].astype(float).describe())
 и отсутствие систематического провала одного спикера. `failed.csv` сохраняется
 для анализа, но не означает автоматическое удаление исходного клипа.
 
-После этого нужно построить новый ML split по `landmark_moderate_v3_labels.csv`,
-упаковать только mouth crops и запустить тот же controlled MS-TCN/BiGRU protocol.
-Нельзя сравнивать moderate и padded по разным split или разным числу эпох.
+5. Построить новый ML split уже по manifest landmark crops:
+
+```python
+split_out = dataset_root / '03_splits/ml_splits_landmark_moderate_v3'
+subprocess.run([
+    'python', str(extract_dir / 'tools/create_ml_splits.py'),
+    '--labels', str(manifest),
+    '--out-dir', str(split_out),
+    '--top-words', '10',
+    '--seed', '42',
+    '--train-speakers', 'spk16,spk17',
+    '--val-speakers', 'spk18',
+    '--test-speakers', 'spk19',
+    '--only-speaker-top',
+], check=True)
+```
+
+6. Упаковать mouth crops для обучения:
+
+```python
+mouth_archive = Path('/content/colab_lipreading_moderate_v3_landmark.zip')
+subprocess.run([
+    'python', str(extract_dir / 'tools/package_ml_dataset.py'),
+    '--dataset-root', str(dataset_root),
+    '--split-dir', str(split_out / 'speaker_top10'),
+    '--output', str(mouth_archive),
+    '--archive-root', 'ru_dataset',
+], check=True)
+shutil.copy2(
+    mouth_archive,
+    Path('/content/drive/MyDrive/lipreading_sem4') / mouth_archive.name,
+)
+```
+
+После этого запускается тот же controlled MS-TCN/BiGRU protocol на новом
+архиве. Нельзя сравнивать moderate и padded по разным split или разному числу
+эпох.

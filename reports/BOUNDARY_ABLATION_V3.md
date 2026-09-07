@@ -88,8 +88,9 @@ MediaPipe landmark и качества mouth ROI выполняется позж
 
 Для запуска следующего этапа в Colab подготовлен отдельный handoff-архив:
 `05_colab_package/colab_lipreading_moderate_v3_prep.zip`. В него входят только
-818 split-referenced raw word clips, CSV/vocab/README и копия
-`create_landmark_mouth_crops.py` в каталоге `tools/`. Исходные длинные видео,
+818 split-referenced raw word clips, CSV/vocab/README и копии трёх уже
+существующих утилит в каталоге `tools/`: `create_landmark_mouth_crops.py`,
+`create_ml_splits.py` и `package_ml_dataset.py`. Исходные длинные видео,
 субтитры и лица авторов в архив не входят.
 
 Команды установки и запуска landmark preprocessing записаны в

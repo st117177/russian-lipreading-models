@@ -306,6 +306,17 @@ macro-F1 by `+0.2622` over the same LRW-pretrained model with the old crop.
 The landmark version wins on all three paired seeds and is now the selected
 preprocessing pipeline.
 
+For the timing-boundary ablation on the new moderate candidate, use:
+
+```text
+notebooks/lipreading_moderate_landmark_prep_colab.ipynb
+```
+
+It runs the existing MediaPipe landmark crop utility, rebuilds a speaker-based
+split, and packages the resulting mouth crops for the same controlled model
+notebooks. The source archive and exact boundary measurements are documented in
+`reports/MODERATE_COLAB_HANDOFF.md` and `reports/BOUNDARY_ABLATION_V3.md`.
+
 The current decision table for dataset v3 is in
 `reports/MODEL_COMPARISON_V3.md`. It keeps the pretrained MS-TCN as the leading
 candidate, rejects temporal masking and DC-TCN, and separates the three-fold
