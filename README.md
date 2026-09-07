@@ -306,6 +306,22 @@ macro-F1 by `+0.2622` over the same LRW-pretrained model with the old crop.
 The landmark version wins on all three paired seeds and is now the selected
 preprocessing pipeline.
 
+The current decision table for dataset v3 is in
+`reports/MODEL_COMPARISON_V3.md`. It keeps the pretrained MS-TCN as the leading
+candidate, rejects temporal masking and DC-TCN, and separates the three-fold
+cross-speaker results from the incompatible single-validation-speaker runs.
+
+The next fixed post-hoc evaluation is:
+
+```text
+notebooks/lipreading_lrw_pretrained_mstcn_posthoc_final_test_colab.ipynb
+```
+
+It validates both archives and all feature-cache metadata before extracting
+the 508 final-test clips. It trains only a linear head on frozen MS-TCN
+features with three predetermined seeds; the final-test numbers cannot be used
+to tune another model.
+
 The next controlled transfer-learning experiment is:
 
 ```text
@@ -541,5 +557,6 @@ The Kaggle notebook reads data from `/kaggle/input` and saves checkpoints to
   `notebooks/lipreading_lrw_pretrained_mstcn_posthoc_final_test_colab.ipynb`
   is the next P1 step; it evaluates MS-TCN on the existing final-test only as a
   post-hoc benchmark, because that test was previously used for BiGRU.
+- The consolidated model decision table is in `reports/MODEL_COMPARISON_V3.md`.
 
 The detailed collection and evaluation plan is in `data/DATASET_V2_PLAN.md`.
