@@ -537,5 +537,9 @@ The Kaggle notebook reads data from `/kaggle/input` and saves checkpoints to
   files to reproduce and inspect this validation-only result.
 - Keep test data closed until the dataset v3 validation decision is recorded.
 - Use `reports/FINAL_MODEL_RESULTS.md` for the coursework results section.
+- P0 data audit is recorded in `reports/P0_DATA_AUDIT.md`. The prepared
+  `notebooks/lipreading_lrw_pretrained_mstcn_posthoc_final_test_colab.ipynb`
+  is the next P1 step; it evaluates MS-TCN on the existing final-test only as a
+  post-hoc benchmark, because that test was previously used for BiGRU.
 
 The detailed collection and evaluation plan is in `data/DATASET_V2_PLAN.md`.

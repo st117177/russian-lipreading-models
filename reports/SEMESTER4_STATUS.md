@@ -884,3 +884,18 @@ Decision gate: `KEEP UNMASKED MS-TCN`. Temporal masking не используе�
 Результаты сохранены в:
 `reports/results/dataset_v3_pretrained_mstcn_temporal_masking_runs.csv` и
 `reports/results/dataset_v3_pretrained_mstcn_temporal_masking_summary.csv`.
+
+## P1: post-hoc benchmark pretrained MS-TCN
+
+Для прямой проверки на тех же новых спикерах подготовлен
+`notebooks/lipreading_lrw_pretrained_mstcn_posthoc_final_test_colab.ipynb`.
+Он использует сохраненные train v3 pooled MS-TCN features, обучает новую
+линейную голову на `train + hflip`, извлекает pooled features для 508 final-test
+клипов и считает метрики на трех seed. В notebook нет подбора по test и нет
+изменения pretrained checkpoint.
+
+Важно: final-test ранее уже просматривался при оценке BiGRU, поэтому будущие
+числа MS-TCN будут post-hoc benchmark для сравнения моделей на одинаковом
+наборе, а не независимым доказательством улучшения. Архивы для запуска:
+`colab_lipreading_dataset_v3_train_val.zip` и
+`colab_lipreading_final_test_landmark_v3.zip`.
