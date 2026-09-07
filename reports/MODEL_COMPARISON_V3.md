@@ -37,8 +37,9 @@ speaker sets, training protocol and baseline construction differ.
 
 1. Keep pretrained MS-TCN as the leading architecture for the coursework.
 2. Do not spend more compute on DC-TCN or temporal masking.
-3. Run the fixed P1 post-hoc notebook once on the existing 508-clip final test.
-4. Only if P1 is informative, consider one small adapter experiment. It must
+3. Complete the padded-boundary review before using the final-test notebook.
+4. Run the fixed P1 post-hoc notebook once on the existing 508-clip final test.
+5. Only if P1 is informative, consider one small adapter experiment. It must
    be selected using validation data and must not tune on the post-hoc test.
 
 ## Reproducibility

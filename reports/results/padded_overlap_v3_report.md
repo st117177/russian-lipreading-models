@@ -10,6 +10,13 @@ Selected for manual review: **30**
 
 Padding can create an overlap even when original word boundaries were correct. Review only checks whether neighbouring articulation is visible in the final crop.
 
+## Overlap severity
+
+- median overlap: `0.466` sec
+- maximum overlap: `0.740` sec
+- pairs with overlap >= 0.20 sec: `38`
+- pairs with >= 50% of the shorter clip overlapped: `22`
+
 ## Pairs by speaker
 
 - `spk16`: 25

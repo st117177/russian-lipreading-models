@@ -30,6 +30,9 @@ def find_overlaps(manifest: Path) -> pd.DataFrame:
                 overlap_end = min(float(left["end_sec"]), float(right["end_sec"]))
                 if overlap_end <= overlap_start or left["word"] == right["word"]:
                     continue
+                duration_a = float(left["end_sec"]) - float(left["start_sec"])
+                duration_b = float(right["end_sec"]) - float(right["start_sec"])
+                overlap_sec = overlap_end - overlap_start
                 rows.append(
                     {
                         "source_video": source_video,
@@ -44,7 +47,12 @@ def find_overlaps(manifest: Path) -> pd.DataFrame:
                         "end_sec_a": left["end_sec"],
                         "start_sec_b": right["start_sec"],
                         "end_sec_b": right["end_sec"],
-                        "overlap_sec": round(overlap_end - overlap_start, 6),
+                        "duration_sec_a": round(duration_a, 6),
+                        "duration_sec_b": round(duration_b, 6),
+                        "overlap_sec": round(overlap_sec, 6),
+                        "overlap_ratio_shorter": round(
+                            overlap_sec / min(duration_a, duration_b), 6
+                        ),
                         "overlap_start_sec": round(overlap_start, 6),
                         "overlap_end_sec": round(overlap_end, 6),
                     }
@@ -53,7 +61,8 @@ def find_overlaps(manifest: Path) -> pd.DataFrame:
     columns = [
         "source_video", "speaker_id", "word_a", "word_b", "clip_id_a", "clip_id_b",
         "clip_file_a", "clip_file_b", "start_sec_a", "end_sec_a", "start_sec_b",
-        "end_sec_b", "overlap_sec", "overlap_start_sec", "overlap_end_sec",
+        "end_sec_b", "duration_sec_a", "duration_sec_b", "overlap_sec",
+        "overlap_ratio_shorter", "overlap_start_sec", "overlap_end_sec",
     ]
     return pd.DataFrame(rows, columns=columns)
 
@@ -91,7 +100,18 @@ def write_report(manifest: Path, overlaps: pd.DataFrame, sample: pd.DataFrame, p
     if overlaps.empty:
         lines.append("No different-word overlaps were found.")
     else:
-        lines.extend(["## Pairs by speaker", ""])
+        lines.extend(["## Overlap severity", ""])
+        lines.extend(
+            [
+                f"- median overlap: `{overlaps['overlap_sec'].median():.3f}` sec",
+                f"- maximum overlap: `{overlaps['overlap_sec'].max():.3f}` sec",
+                f"- pairs with overlap >= 0.20 sec: `{int((overlaps['overlap_sec'] >= 0.20).sum())}`",
+                f"- pairs with >= 50% of the shorter clip overlapped: `{int((overlaps['overlap_ratio_shorter'] >= 0.50).sum())}`",
+                "",
+                "## Pairs by speaker",
+                "",
+            ]
+        )
         lines.extend(
             f"- `{speaker}`: {count}"
             for speaker, count in overlaps.groupby("speaker_id").size().sort_index().items()
