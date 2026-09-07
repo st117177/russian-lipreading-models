@@ -7,9 +7,14 @@ Expected clip layout:
 
 import argparse
 import csv
+import sys
 from pathlib import Path
 
-import imageio_ffmpeg
+SCRIPT_DIR = Path(__file__).resolve().parent
+sys.path.insert(0, str(SCRIPT_DIR))
+
+from batch_cut_ru_clips_from_words_frames import probe_video
+from cut_ru_clips_from_words_frames import get_ffmpeg_exe
 
 ALLOWED_EXTS = {".mp4", ".mov", ".avi", ".mkv", ".webm"}
 HEADER = [
@@ -23,9 +28,9 @@ HEADER = [
 ]
 
 
-def get_clip_duration_sec(clip_file: Path) -> float:
+def get_clip_duration_sec(clip_file: Path, ffmpeg_exe: str) -> float:
     """Return clip duration in seconds for labels.csv metadata."""
-    _, duration_sec = imageio_ffmpeg.count_frames_and_secs(str(clip_file))
+    _, duration_sec = probe_video(clip_file, ffmpeg_exe)
     return max(float(duration_sec), 0.001)
 
 
@@ -43,6 +48,7 @@ def collect_rows(
     clips_dir: str,
     default_source: str,
     clip_prefix: str,
+    ffmpeg_exe: str,
 ) -> list[list[str]]:
     clips_root = dataset_root / clips_dir
     rows: list[list[str]] = []
@@ -64,7 +70,7 @@ def collect_rows(
                 clip_index += 1
                 rel_path = clip_file.relative_to(dataset_root).as_posix()
                 source = detect_source(clip_file.name, default_source)
-                duration_sec = get_clip_duration_sec(clip_file)
+                duration_sec = get_clip_duration_sec(clip_file, ffmpeg_exe)
                 rows.append([
                     clip_id,
                     rel_path,
@@ -94,12 +100,20 @@ def main() -> int:
     parser.add_argument("--vocab-output", type=Path, default=None)
     parser.add_argument("--default-source", default="self_recorded", choices=["self_recorded", "youtube"])
     parser.add_argument("--clip-prefix", default="ru_")
+    parser.add_argument("--ffmpeg-exe", default=None)
     args = parser.parse_args()
 
     dataset_root = args.dataset_root
     output = args.output if args.output is not None else dataset_root / "labels.csv"
+    ffmpeg_exe = get_ffmpeg_exe(args.ffmpeg_exe)
 
-    rows = collect_rows(dataset_root, args.clips_dir, args.default_source, args.clip_prefix)
+    rows = collect_rows(
+        dataset_root,
+        args.clips_dir,
+        args.default_source,
+        args.clip_prefix,
+        ffmpeg_exe,
+    )
     write_labels(output, rows)
 
     if args.vocab_output is not None:

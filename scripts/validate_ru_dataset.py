@@ -39,9 +39,14 @@ def normalize_fieldnames(fieldnames: list[str] | None) -> list[str] | None:
     return normalized
 
 
-def validate(dataset_root: Path, min_per_word: int) -> tuple[bool, str]:
-    labels_path = dataset_root / "labels.csv"
-    vocab_path = dataset_root / "vocab.txt"
+def validate(
+    dataset_root: Path,
+    min_per_word: int,
+    labels_path: Path | None = None,
+    vocab_path: Path | None = None,
+) -> tuple[bool, str]:
+    labels_path = labels_path or (dataset_root / "labels.csv")
+    vocab_path = vocab_path or (dataset_root / "vocab.txt")
 
     problems: list[str] = []
     notes: list[str] = []
@@ -147,10 +152,17 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Validate ru_dataset metadata")
     parser.add_argument("--dataset-root", type=Path, default=Path("ru_dataset"))
     parser.add_argument("--min-per-word", type=int, default=15)
+    parser.add_argument("--labels", type=Path, default=None)
+    parser.add_argument("--vocab", type=Path, default=None)
     parser.add_argument("--report", type=Path, default=None)
     args = parser.parse_args()
 
-    ok, report = validate(args.dataset_root, args.min_per_word)
+    ok, report = validate(
+        args.dataset_root,
+        args.min_per_word,
+        labels_path=args.labels,
+        vocab_path=args.vocab,
+    )
     print(report)
 
     if args.report is not None:

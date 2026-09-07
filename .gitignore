@@ -31,6 +31,7 @@ clips/
 *.log
 padded_bad_files.txt
 padded_duration_mismatches.txt
+reports/results/*review_sheets/
 
 # OS/editor
 .DS_Store

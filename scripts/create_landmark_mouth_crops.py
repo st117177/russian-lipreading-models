@@ -34,6 +34,9 @@ SOURCE_PREFIX_MAP = {
     "02_model_inputs/mouth_crops_padded": "01_intermediate_clips/selected_clips_padded",
     "02_model_inputs/mouth_crops_padded_v2_new": "01_intermediate_clips/word_clips_padded_v2_new",
     "01_intermediate_clips/word_clips_padded_v3_new": "01_intermediate_clips/word_clips_padded_v3_new",
+    "01_intermediate_clips/word_clips_tight_v3": "01_intermediate_clips/word_clips_tight_v3",
+    "01_intermediate_clips/word_clips_moderate_v3": "01_intermediate_clips/word_clips_moderate_v3",
+    "01_intermediate_clips/word_clips_bounded_v3": "01_intermediate_clips/word_clips_bounded_v3",
     "01_intermediate_clips/final_test_selected_clips_padded": "01_intermediate_clips/final_test_selected_clips_padded",
 }
 
