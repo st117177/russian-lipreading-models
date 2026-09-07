@@ -25,6 +25,13 @@ def parse_args() -> argparse.Namespace:
         default=("train", "val", "test"),
         help="Split CSV files to include. Use '--splits train val' while tuning without test data.",
     )
+    parser.add_argument(
+        "--include-tool",
+        type=Path,
+        action="append",
+        default=[],
+        help="Optional local utility to include under tools/ for a Colab handoff.",
+    )
     return parser.parse_args()
 
 
@@ -70,6 +77,9 @@ def main() -> None:
         raise FileNotFoundError(
             f"{len(missing)} referenced clips are missing under {dataset_root}:\n{preview}"
         )
+    missing_tools = [path for path in args.include_tool if not path.is_file()]
+    if missing_tools:
+        raise FileNotFoundError(f"Missing included tools: {missing_tools}")
 
     output.parent.mkdir(parents=True, exist_ok=True)
     split_relative = split_dir.relative_to(dataset_root)
@@ -89,6 +99,9 @@ def main() -> None:
                     metadata_path,
                     archive_name(args.archive_root, split_relative / metadata_name),
                 )
+
+        for tool_path in args.include_tool:
+            archive.write(tool_path, str(PurePosixPath("tools", tool_path.name)))
 
     split_counts = {name: len(rows) for name, rows in split_rows.items()}
     print("archive:", output)

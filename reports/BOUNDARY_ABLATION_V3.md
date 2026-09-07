@@ -86,6 +86,15 @@ MediaPipe landmark и качества mouth ROI выполняется позж
 финальный split всей объединённой версии Dataset v3 и не используется для
 выбора модели до проверки mouth ROI.
 
+Для запуска следующего этапа в Colab подготовлен отдельный handoff-архив:
+`05_colab_package/colab_lipreading_moderate_v3_prep.zip`. В него входят только
+818 split-referenced raw word clips, CSV/vocab/README и копия
+`create_landmark_mouth_crops.py` в каталоге `tools/`. Исходные длинные видео,
+субтитры и лица авторов в архив не входят.
+
+Команды установки и запуска landmark preprocessing записаны в
+[reports/MODERATE_COLAB_HANDOFF.md](MODERATE_COLAB_HANDOFF.md).
+
 ## Решение для следующего этапа
 
 1. Не заменять исходный padded dataset молча.

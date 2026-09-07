@@ -53,7 +53,7 @@ YouTube links
 | `create_landmark_mouth_crops.py` | new for 4th semester | Creates a separate experimental mouth ROI using per-frame MediaPipe landmarks, eye-line alignment, temporal smoothing, and detection diagnostics; supports padded, tight, moderate, and bounded timing variants as well as the reserved final-test clip tree. | `detect_geometry`, `smooth_geometry`, `rotate_and_crop`, `crop_video`, `create_contact_sheet` |
 | `apply_manual_mouth_crop_filter.py` | new for 4th semester | Removes manually rejected bad mouth crops from the labels CSV without deleting video files. | `normalize_path`, `load_bad_items`, `should_remove` |
 | `create_ml_splits.py` | new for 4th semester | Creates random or speaker-based train/validation/test splits; `--only-speaker-top` avoids unused diagnostic split folders. | `top_words`, `filter_words`, `speaker_split`, `stratified_random_split`, `save_split_set` |
-| `package_ml_dataset.py` | new for 4th semester | Builds a portable ZIP with only split-referenced clips and POSIX archive paths for Colab/Kaggle; can omit test while tuning. | `read_split_rows`, `archive_name`, `main` |
+| `package_ml_dataset.py` | new for 4th semester | Builds a portable ZIP with only split-referenced clips and POSIX archive paths for Colab/Kaggle; can omit test while tuning and optionally include a preprocessing tool for a Colab handoff. | `read_split_rows`, `archive_name`, `main` |
 | `validate_ru_dataset.py` | 3rd semester, edited for 4th semester | Validates dataset labels, vocabulary, and clip files; optional `--labels` and `--vocab` allow checking an alternate candidate without replacing the default files. | `read_vocab`, `validate` |
 
 ## What Was Actually Added In Semester 4
