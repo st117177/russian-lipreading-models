@@ -98,6 +98,7 @@ More detailed structure notes:
 
 ```text
 reports/PROJECT_STRUCTURE.md
+reports/SEMESTER4_REPORT_DRAFT.md
 scripts/README.md
 reports/MOUTH_CROP_CLEANING_PLAN.md
 ```
