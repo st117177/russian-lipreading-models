@@ -98,6 +98,7 @@ More detailed structure notes:
 
 ```text
 reports/PROJECT_STRUCTURE.md
+reports/STUDENT_GUIDE.md
 scripts/README.md
 reports/MOUTH_CROP_CLEANING_PLAN.md
 ```
@@ -238,6 +239,20 @@ The notebooks also add a frozen ImageNet-pretrained ResNet18 experiment. In that
 setup the ResNet18 frame encoder is frozen and only the BiGRU temporal encoder
 and word classifier are trained. This tests whether general pretrained visual
 features help on the small coursework dataset.
+
+The current best validation candidate is a frozen LRW-pretrained visual frontend
+with a pretrained MS-TCN temporal backend and a trainable linear 10-class head.
+Across the controlled cross-speaker validation runs it reached mean macro-F1
+`0.5832`, while the corresponding hflip BiGRU control reached `0.3900`. Temporal
+masking and partial `layer4` fine-tuning were tested and were not selected.
+
+The remaining scientific step is one post-hoc final-test run for MS-TCN. The
+interpretation guide for the project, including tensor shapes, training logic,
+metrics, current results, limitations, and defense questions, is in:
+
+```text
+reports/STUDENT_GUIDE.md
+```
 
 Visual inspection showed that automatic face detection can occasionally crop a
 wrong region. Dataset v2 therefore uses automatic checks followed by contact-sheet
