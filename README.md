@@ -246,12 +246,8 @@ Across the controlled cross-speaker validation runs it reached mean macro-F1
 masking and partial `layer4` fine-tuning were tested and were not selected.
 
 The remaining scientific step is one post-hoc final-test run for MS-TCN. The
-interpretation guide for the project, including tensor shapes, training logic,
-metrics, current results, limitations, and defense questions, is in:
-
-```text
-reports/STUDENT_GUIDE.md
-```
+current results and limitations are documented in `reports/FINAL_MODEL_RESULTS.md`
+and `reports/MODEL_IMPROVEMENT_PLAN.md`.
 
 Visual inspection showed that automatic face detection can occasionally crop a
 wrong region. Dataset v2 therefore uses automatic checks followed by contact-sheet
