@@ -33,12 +33,16 @@ SILENCE_LABELS = {
 
 @dataclass
 class Segment:
+    # Один непрерывный фрагмент видео, на котором произносится одно слово.
+    # Важно: границы хранятся в кадрах, а не в секундах. Так мы не теряем
+    # точность исходной разметки; в секунды их переведём только перед ffmpeg.
     word: str
     start_frame: int
     end_frame: int
 
     @property
     def frame_count(self) -> int:
+        # Обе границы включительные: диапазон 10..12 содержит 3 кадра.
         return self.end_frame - self.start_frame + 1
 
 
@@ -50,7 +54,12 @@ def sanitize_path_part(value: str) -> str:
 
 
 def get_ffmpeg_exe(explicit: str | None = None) -> str:
-    """Find ffmpeg for both the standalone and batch clipping commands."""
+    """Найти один и тот же ffmpeg для одиночной и пакетной нарезки.
+
+    Это добавление 4 семестра: раньше использовался только
+    imageio_ffmpeg.get_ffmpeg_exe(). Теперь скрипт умеет взять ffmpeg из
+    явного аргумента, переменной окружения, PATH или известного пути Windows.
+    """
     candidates = [
         explicit,
         os.environ.get("FFMPEG_BINARY"),
@@ -61,6 +70,8 @@ def get_ffmpeg_exe(explicit: str | None = None) -> str:
         if not candidate:
             continue
         if explicit and candidate == explicit:
+            # Явный путь — это сознательный выбор пользователя. Возвращаем
+            # его сразу, даже если проверка существования файла ограничена.
             return str(candidate)
         try:
             if Path(candidate).is_file():
@@ -96,10 +107,15 @@ def load_words_frames(path: Path) -> list[str]:
     "дела"
     ]
     """
+    # Входной файл содержит одну метку на строку: строка N соответствует
+    # кадру N. Пробуем несколько кодировок, потому что русские файлы могли
+    # быть сохранены как UTF-8, UTF-8 с BOM или Windows-1251.
     for encoding in ("utf-8", "utf-8-sig", "cp1251"):
         try:
+            # splitlines() убирает переводы строк, strip() — пробелы по краям.
             return [line.strip() for line in path.read_text(encoding=encoding).splitlines()]
         except UnicodeDecodeError:
+            # Если текущая кодировка не подошла, пробуем следующую.
             continue
 
     raise UnicodeDecodeError("unknown", b"", 0, 1, f"Unable to decode {path}")
@@ -121,24 +137,35 @@ def build_segments(labels: list[str], min_frames: int) -> list[Segment]:
     Segment("как",3,4)
     Segment("дела",5,5)
     """
-    # создаётся пустой список, куда будут складываться найденные слова
+    # Здесь выполняется основная логика старого фундамента (3 семестр):
+    # соседние одинаковые метки объединяются в один интервал.
     segments: list[Segment] = []  # type hint
     if not labels:
+        # Для пустого words_frames.txt нарезать нечего.
         return segments
 
+    # Пока просматриваем последовательность, current_label — метка текущего
+    # интервала, а start_frame — кадр, с которого этот интервал начался.
     current_label = labels[0]
     start_frame = 0
 
     for frame_idx in range(1, len(labels) + 1):
+        # len(labels) используется как искусственный последний индекс: так
+        # последняя группа меток закрывается тем же кодом, что и остальные.
         at_end = frame_idx == len(labels)
         next_label = None if at_end else labels[frame_idx]
         if at_end or next_label != current_label:
-            # если текущее слово закончилось
+            # Текущая последовательность закончилась перед frame_idx.
+            # Поэтому её последний кадр — frame_idx - 1.
             if current_label and not is_silence(current_label):
                 segment = Segment(current_label, start_frame, frame_idx - 1)
+                # Однокадровые/слишком короткие интервалы обычно являются
+                # шумом разметки, поэтому их можно отфильтровать.
                 if segment.frame_count >= min_frames:
                     segments.append(segment)
             if not at_end:
+                # Начинаем новую группу с текущего кадра, потому что на нём
+                # уже находится next_label.
                 current_label = next_label
                 start_frame = frame_idx
 
@@ -155,7 +182,9 @@ def cut_segment(
     preset: str,
     low_memory_x264: bool,
 ) -> None:
-    """режет видео"""
+    """Собирает и запускает команду ffmpeg для одного сегмента."""
+    # Это вторая основная часть старого фундамента (3 семестр): ffmpeg
+    # получает временной интервал и создаёт отдельный mp4-файл.
     output_path.parent.mkdir(parents=True, exist_ok=True)
     # parents=True может создать недостающие родительские папки
     cmd = [
@@ -193,6 +222,9 @@ def cut_segment(
     ])
 
     try:
+        # 4 семестр: не засоряем консоль обычным логом ffmpeg, но сохраняем
+        # stderr и печатаем его только при ошибке — диагностика становится
+        # намного понятнее при пакетной обработке большого числа видео.
         subprocess.run(
             cmd,
             check=True,
@@ -207,7 +239,13 @@ def cut_segment(
 
 
 def write_manifest(path: Path, rows: list[dict[str, str]]) -> None:
-    """создаёт CSV-файл, где будет список всех вырезанных клипов"""
+    """Сохранить таблицу соответствия «клип ↔ исходный интервал».
+
+    Manifest — метаданные 4-семестровой версии относительно простого старого
+    варианта: по CSV можно восстановить, из какого видео, слова и кадров был
+    сделан каждый mp4. Это нужно для проверки датасета, обучения модели и
+    повторной нарезки без ручного поиска исходного места.
+    """
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8", newline="") as f:
         writer = csv.DictWriter(
@@ -244,11 +282,15 @@ def main() -> int:
     parser.add_argument("--clip-prefix", default=None)
     parser.add_argument("--manifest", type=Path, default=None)
     parser.add_argument("--copy-codecs", action="store_true")
+    # 4 семестр: можно явно указать исполняемый файл ffmpeg, если он не
+    # найден автоматически или нужно использовать конкретную установку.
     parser.add_argument("--ffmpeg-exe", default=None)
     parser.add_argument("--preset", default="veryfast")
     parser.add_argument("--low-memory-x264", action="store_true")
     args = parser.parse_args()
 
+    # Общий resolver используется и этим скриптом, и другими командами
+    # проекта. Это устраняет зависимость только от imageio_ffmpeg.
     ffmpeg_exe = get_ffmpeg_exe(args.ffmpeg_exe)
     labels = load_words_frames(args.words_frames)
     # -> получили список labels (подписей на каждый кадр)
@@ -272,6 +314,9 @@ def main() -> int:
         file_name = f"{clip_prefix}{idx:06d}.mp4"
         output_path = args.clips_root / word_dir / args.speaker_id / file_name
         # ну и сам путь
+        # Переводим кадры в секунды: начало кадра = frame / FPS.
+        # У end_frame добавляем 1, потому что правая граница интервала
+        # фактически является концом следующего кадра.
         start_sec = max(
             0.0,
             ((segment.start_frame - args.padding_frames) / args.fps) - args.start_padding_sec,
@@ -299,6 +344,8 @@ def main() -> int:
             args.preset,
             args.low_memory_x264,
         )
+        # Записываем метаданные только после успешной нарезки: в manifest
+        # не попадёт запись о клипе, который ffmpeg не смог создать.
         rows.append(
             {
                 "clip_file": output_path.as_posix(),

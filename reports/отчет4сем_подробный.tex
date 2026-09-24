@@ -1,0 +1,738 @@
+\documentclass[12pt,a4paper]{article}
+
+% Кодировка и русский язык
+\usepackage[utf8]{inputenc}
+\usepackage[T2A]{fontenc}
+\usepackage[russian,english]{babel}
+
+% Страница и текст
+\usepackage[
+    a4paper,
+    left=3cm,
+    right=1.5cm,
+    top=2cm,
+    bottom=2cm
+]{geometry}
+\usepackage{setspace}
+\usepackage{indentfirst}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{microtype}
+
+\onehalfspacing
+\setlength{\parindent}{1.25cm}
+\setlength{\parskip}{0pt}
+\setlist[itemize]{leftmargin=1.25cm}
+\setlist[enumerate]{leftmargin=1.25cm}
+
+\titleformat{\section}
+    {\bfseries\large}{\thesection.}{0.5em}{}
+\titleformat{\subsection}
+    {\bfseries\normalsize}{\thesubsection.}{0.5em}{}
+
+% Таблицы и математика
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+% Ссылки
+\usepackage{xcolor}
+\usepackage[colorlinks=true,allcolors=blue]{hyperref}
+
+\emergencystretch=2em
+
+\begin{document}
+
+\begin{titlepage}
+\begin{center}
+\large
+Санкт-Петербургский государственный университет
+\end{center}
+
+\vspace{3cm}
+
+\begin{center}
+\textbf{\large ОТЧЕТ}
+
+\vspace{0.5cm}
+
+по курсовой работе
+\end{center}
+
+\vspace{1.5cm}
+
+\begin{center}
+\textbf{\LARGE
+Подготовка русскоязычного датасета и исследование моделей для чтения по губам
+}
+\end{center}
+
+\vfill
+
+\begin{flushright}
+\begin{minipage}{0.45\textwidth}
+\raggedright
+Выполнила: студент\\
+Тарасова Дарья
+
+\vspace{0.5cm}
+
+Научный руководитель:\\
+доцент кафедры ИАС,\\
+к. ф.-м. н. Графеева Н. Г.
+\end{minipage}
+\end{flushright}
+
+\vfill
+
+\begin{center}
+Санкт-Петербург\\
+2026
+\end{center}
+\end{titlepage}
+
+\section*{Аннотация}
+\addcontentsline{toc}{section}{Аннотация}
+
+В работе продолжен проект по чтению отдельных русских слов по
+видеопоследовательностям губ. В третьем семестре был подготовлен
+демонстрационный датасет. В четвертом семестре разработан воспроизводимый
+конвейер расширения и контроля данных, подготовлены speaker-based split,
+mouth ROI и landmark-based preprocessing, а также проведено сравнение
+PyTorch-моделей с переносом знаний из lip-reading-модели, обученной на
+англоязычном датасете LRW.
+
+Лучшим validation-кандидатом стала frozen LRW-pretrained visual frontend
+вместе с pretrained MS-TCN temporal backend. На cross-speaker validation
+средний macro-F1 составил $0.5832$. В отложенном post-hoc benchmark на
+508 клипах трех новых спикеров получены accuracy
+$0.6280 \pm 0.0020$, macro-F1 $0.6124 \pm 0.0040$ и balanced accuracy
+$0.6074 \pm 0.0085$. Test ранее просматривался в BiGRU-эксперименте,
+поэтому эти числа фиксируются как post-hoc benchmark и не используются
+для дальнейшей настройки.
+
+\tableofcontents
+\newpage
+
+\section{Введение}
+
+Чтение по губам является задачей компьютерного зрения, в которой по
+последовательности кадров видео определяется произнесенная речь или отдельные
+слова. Такие методы могут применяться в мультимодальных системах распознавания
+речи, при анализе видеоданных и создании вспомогательных технологий.
+
+В данной работе продолжен проект по чтению отдельных русских слов по
+видеопоследовательностям области рта. В предыдущем семестре был подготовлен
+демонстрационный датасет. В текущем семестре разработан воспроизводимый
+конвейер расширения и контроля данных, подготовлены speaker-based split,
+mouth ROI и landmark-based preprocessing, а также проведено сравнение
+моделей PyTorch с переносом знаний из lip-reading-модели, обученной на
+англоязычном датасете LRW.
+
+Главным содержательным результатом стала не одна отдельно взятая модель,
+а последовательное исследование, в котором проверялись корректность
+обучающего конвейера, влияние дисбаланса, временной структуры, спикерного
+разделения, preprocessing и предварительно обученных компонентов.
+
+\section{Постановка задачи}
+
+Цель работы --- исследовать, насколько компактные модели компьютерного
+зрения способны классифицировать изолированные русские слова по видео
+области рта.
+
+В рамках текущего этапа были поставлены следующие задачи:
+
+\begin{enumerate}
+\item расширить датасет по сравнению с демонстрационной версией;
+\item автоматизировать повторяющиеся этапы подготовки данных;
+\item подготовить единый формат входных данных для нейронной сети;
+\item исключить утечку информации между спикерами при разделении данных;
+\item реализовать baseline-модель на PyTorch;
+\item сравнить temporal-модели и перенос предварительно обученных lip-reading
+      признаков;
+\item оценить качество по метрикам, устойчивым к дисбалансу классов;
+\item зафиксировать ограничения и отрицательные результаты экспериментов.
+\end{enumerate}
+
+Задача ограничена десятью словами. Таким образом, рассматриваемая система
+не является системой распознавания произвольной русской речи, а представляет
+собой контролируемый word-level benchmark.
+
+\section*{История и порядок выполнения работы}
+\addcontentsline{toc}{section}{История и порядок выполнения работы}
+
+Работа развивалась поэтапно. Сначала был воспроизведен и проверен простой
+baseline, затем отдельно проверялась корректность данных и обучения, после
+чего проводилось сравнение temporal-моделей и pretrained-компонентов.
+Поэтому notebooks в репозитории не являются независимыми готовыми решениями:
+часть из них фиксирует промежуточные эксперименты, отрицательные результаты
+или варианты одной и той же модели.
+
+\subsection*{Этап 1. Исходная точка и структура проекта}
+
+В третьем семестре был подготовлен demo-датасет и базовый preprocessing
+pipeline. В начале четвертого семестра был создан отдельный проект для
+продолжения работы: код preprocessing, локальная структура данных, notebooks
+и документация были отделены от материалов третьего семестра. На этом этапе
+модель еще не являлась результатом исследования; главной задачей было получить
+воспроизводимую основу для дальнейших экспериментов.
+
+\subsection*{Этап 2. Первый PyTorch baseline}
+
+Был добавлен чистый Colab notebook с первым PyTorch baseline. Он включал
+восстановление архива, загрузку CSV, Dataset, DataLoader, загрузку 24 кадров,
+модель Simple3DCNN, training loop, validation и графики.
+
+Затем были проверены варианты weighted CrossEntropyLoss и
+WeightedRandomSampler. Эти эксперименты не дали устойчивого улучшения.
+Простая 3D-CNN в основном предсказывала наиболее частый класс. Это показало,
+что одной архитектуры и стандартной accuracy недостаточно: нужно учитывать
+дисбаланс, temporal structure и speaker-independent evaluation.
+
+\subsection*{Этап 3. Переход к временной модели и аудит ошибок}
+
+Был добавлен controlled FrameCNN+BiGRU baseline. Вместо обработки всего
+клипа одной 3D-сверткой модель извлекала признаки из отдельных кадров,
+формировала последовательность и передавала ее в двунаправленную GRU.
+Параллельно был добавлен model-based clip audit: клипы с большим loss и
+неправильными предсказаниями сохранялись в CSV и contact sheets для
+визуальной проверки.
+
+Затем были добавлены эксперименты с ResNet18. Сначала ResNet18 обучалась
+с нуля, затем использовался frozen pretrained encoder. Отдельно проверялось,
+помогает ли balanced training. Эти запуски показали, что на небольшом
+датасете обучение большого visual encoder с нуля нестабильно, поэтому
+более перспективным направлением стал перенос готовых визуальных признаков.
+
+\subsection*{Этап 4. Проверка самого training pipeline}
+
+В основной notebook был добавлен Tiny Overfit Diagnostic, а затем создан
+отдельный notebook для его запуска. Целью было проверить, способен ли код
+запомнить небольшой набор, а не получить высокое качество на новых спикерах.
+
+Первый запуск был нестабильным: 16 клипов дали 87.5\%, а 32 клипа ---
+65.6\%. После стабилизации эксперимента были зафиксированы seed,
+\texttt{num\_workers=0}, кэширование видео, GroupNorm вместо BatchNorm,
+отключены dropout, augmentation и weight decay. Были добавлены проверки
+путей, labels, конфликтующих дубликатов, движения между кадрами и дисперсии
+пикселей.
+
+В стабильном запуске модель достигла 100\% memorization accuracy на 16
+клипах на 43-й эпохе и на 32 клипах на 129-й эпохе. Оба диагностических
+порога были пройдены. После этого дальнейшее плохое качество full-dataset
+baseline можно было рассматривать как проблему обобщения, дисбаланса,
+объема и качества данных, а не как очевидную ошибку загрузки или
+backpropagation.
+
+\subsection*{Этап 5. Контролируемое сравнение моделей}
+
+После Tiny Overfit были вынесены отдельные controlled notebooks:
+FrameCNN+BiGRU на полном speaker-based split, frozen ResNet18 + BiGRU и
+balanced frozen-feature experiment. Для этих запусков фиксировались seed,
+протокол обучения, validation split и метрики. Сравнение проводилось не
+только по accuracy, но и по macro-F1, balanced accuracy, распределению
+предсказаний и per-class результатам.
+
+\subsection*{Этап 6. Расширение датасета}
+
+На этапе расширения были добавлены новые кандидаты спикеров. Затем исходные
+ссылки и metadata были вынесены из публичной части проекта, чтобы в GitHub
+оставались только код, отчеты и необходимые небольшие metadata-файлы.
+
+После этого был подготовлен и оценен Dataset v2, а затем добавлено
+multi-seed сравнение. Это позволило проверить, является ли улучшение модели
+устойчивым к случайной инициализации, а не результатом одного удачного
+запуска.
+
+\subsection*{Этап 7. Pretrained LRW frontend и temporal backends}
+
+Последовательно были добавлены TCN backend, pretrained LRW visual frontend
+и финальная тестовая процедура. Затем был проведен отдельный
+speaker-independent final benchmark.
+
+Смысл этого этапа состоял в переносе visual frontend, уже обученного на
+задаче lip reading, вместо обучения большого visual encoder с нуля. После
+этого сравнивались BiGRU и MS-TCN как temporal backend. MS-TCN стал лучшим
+кандидатом на cross-speaker validation.
+
+\subsection*{Этап 8. Landmark preprocessing и Dataset v3}
+
+Следующим этапом был добавлен landmark-aligned mouth crop. В отличие от
+простого crop по прямоугольнику лица, он использует точки губ и глаз,
+сглаживает их во времени и компенсирует наклон головы. Затем были
+подготовлены Dataset v3, speaker/sampler ablations и варианты fine-tuning
+последнего блока frontend.
+
+На этом этапе сравнивались не только модели, но и варианты входных данных:
+обычные mouth crops, landmark crops, horizontal flip и различные составы
+спикеров. Это позволило отделить влияние архитектуры от влияния
+preprocessing.
+
+\subsection*{Этап 9. Финальное сравнение и контроль риска переобучения}
+
+Затем были проверены перенос pretrained MS-TCN, DC-TCN и temporal masking.
+DC-TCN и temporal masking не дали достаточного преимущества и не были
+выбраны финальным направлением.
+
+После сравнения моделей работа перешла в фазу аудита и фиксации решения:
+был составлен план улучшения модели, проверены границы padded-клипов и их
+перекрытия, оценены bounded/moderate timing variants и подготовлен
+воспроизводимый post-hoc benchmark.
+
+Финальный post-hoc тест был выполнен после фиксации архитектуры и протокола.
+Тестовые клипы ранее просматривались в одном из промежуточных экспериментов,
+поэтому результат явно обозначен как post-hoc benchmark, а не как полностью
+неиспользованный test set.
+
+\subsection*{Этап 10. Фиксация результатов и документация}
+
+На финальном этапе были сохранены результаты MS-TCN, удалены внутренние
+материалы студенческого guide из публичного репозитория и добавлен черновик
+основного отчета.
+
+Итоговая последовательность исследования:
+
+\begin{verbatim}
+старый preprocessing
+ -> первый Simple3DCNN baseline
+ -> проверка дисбаланса
+ -> FrameCNN+BiGRU
+ -> диагностика Tiny Overfit
+ -> ResNet и frozen encoder
+ -> расширение Dataset v2/v3
+ -> LRW-pretrained frontend
+ -> BiGRU/TCN/MS-TCN comparison
+ -> landmark preprocessing
+ -> overlap/data audit
+ -> финальный post-hoc benchmark
+\end{verbatim}
+
+\section{Результат 3 семестра}
+
+В предыдущем семестре был собран демонстрационный набор данных из 182 клипов,
+8 слов и 5 спикеров. Основная цепочка подготовки данных выглядела следующим
+образом:
+
+\begin{center}
+\begin{verbatim}
+video + transcript
+ -> audio.wav + cleaned text
+ -> WebMAUS forced alignment
+ -> TextGrid
+ -> words_frames.txt
+ -> word-level clips
+ -> labels.csv + vocab.txt
+ -> validation
+\end{verbatim}
+\end{center}
+
+В третьем семестре модель распознавания не обучалась. Результатом этапа были
+видеоклипы отдельных слов, метаданные и автоматическая проверка
+согласованности подготовленного архива.
+
+\section{Данные 4 семестра}
+
+\subsection{Версии датасета}
+
+В работе сохранены несколько версий датасета, поскольку каждая из них
+соответствует отдельному этапу экспериментов.
+
+\begin{table}[htbp]
+\centering
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{0.18\textwidth} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}p{0.29\textwidth}}
+\toprule
+Версия & Назначение & Размер \\
+\midrule
+Demo 3 семестра & демонстрация конвейера & 182 клипа, 8 слов, 5 спикеров \\
+Dataset v1 & первый speaker-based baseline & 955 клипов, 10 слов, 6 спикеров \\
+Dataset v2 & добавление двух train-спикеров & 1355 клипов, 10 слов, 8 спикеров \\
+Dataset v3 & расширенный train и landmark crops & 1901 train, 105 validation, 508 final-test-кандидатов \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Полный набор видеоклипов хранится локально и на Google Drive. В репозитории
+GitHub находятся только код, отчеты и небольшие metadata-файлы.
+
+\subsection{Разделение по спикерам}
+
+Для основной оценки моделей используется speaker-based protocol:
+
+\begin{itemize}
+\item train --- 1901 клип, 9 спикеров;
+\item validation --- 105 клипов, спикер \texttt{spk06};
+\item final test --- 508 клипов, спикеры \texttt{spk13}, \texttt{spk14} и \texttt{spk15};
+\item словарь --- 10 русских слов.
+\end{itemize}
+
+Такое разделение позволяет проверять способность модели переносить
+полученные признаки на людей, которых она не видела во время обучения.
+Случайное разделение данных используется только в качестве
+диагностического контроля.
+
+\subsection{Ограничения данных}
+
+Классы не идеально сбалансированы. Например, в final test слово «есть»
+имеет 124 примера, а слово «значит» --- 12. Поэтому одной метрики accuracy
+недостаточно для оценки качества.
+
+Кроме того, часть padded-интервалов может пересекаться с соседними словами.
+Это проверялось отдельным overlap-аудитом. Результаты моделей не следует
+трактовать как доказательство идеальной временной разметки всех клипов.
+
+\section{Pipeline подготовки данных}
+
+\subsection{Исходное видео и субтитры}
+
+Дополнительные видео скачиваются на основании локального manifest-файла.
+Ссылки, авторы и оригинальные идентификаторы видео намеренно не публикуются
+в репозитории GitHub.
+
+Скрипт \texttt{download\_candidate\_videos.py} получает видео и субтитры.
+Длинные записи проходят через \texttt{chunk\_raw\_videos\_for\_maus.py},
+который делит их на небольшие chunks. Chunk является техническим фрагментом
+исходного видео, а не отдельным словом; он нужен, чтобы WebMAUS обрабатывал
+ограниченный по длине аудиофайл.
+
+\subsection{Подготовка WebMAUS}
+
+Скрипт \texttt{prepare\_maus\_inputs.py} читает SRT или текстовую
+расшифровку, убирает номера субтитров, таймкоды и служебный мусор,
+исправляет повторения rolling subtitles, извлекает из видео mono WAV через
+ffmpeg и записывает пару \texttt{audio.wav + cleaned\_text.txt}.
+
+\texttt{batch\_prepare\_maus\_inputs.py} запускает этот этап для набора
+файлов. Затем \texttt{batch\_submit\_webmaus\_basic.py} вызывает
+\texttt{submit\_webmaus\_basic.py}, отправляет подготовленные audio/text
+пары в BAS WebMAUS и получает forced alignment в формате TextGrid.
+Пакетная обертка повторяет операцию для многих chunks и изолирует ошибки
+отдельных файлов.
+
+\subsection{Временная разметка и word-level clips}
+
+\texttt{get\_phonewords\_frames.py} преобразует интервалы слов из TextGrid
+в \texttt{words\_frames.txt}, где для каждого кадра указано активное слово.
+\texttt{batch\_generate\_phonewords\_frames.py} применяет этот шаг к
+множеству TextGrid.
+
+\texttt{cut\_ru\_clips\_from\_words\_frames.py} использует покадровые
+метки и вырезает word-level clips. Пакетный вариант
+\texttt{batch\_cut\_ru\_clips\_from\_words\_frames.py} запускает ту же
+логику и поддерживает разные варианты временного контекста.
+
+Padded clip содержит небольшой запас кадров до и после границы слова. Это
+не новый вид разметки, а тот же word-level clip с контекстом, чтобы начало
+и конец артикуляции не обрезались слишком жестко.
+
+\subsection{Labels, quality и mouth ROI}
+
+\texttt{build\_labels\_from\_clips.py} формирует \texttt{labels.csv} по
+папкам клипов. \texttt{quality\_check\_clips.py} проверяет читаемость
+видео, длительность, число кадров и наличие лица, а также создает report
+и contact sheets.
+
+\texttt{create\_mouth\_crops.py} делает обычный mouth ROI. Для модельного
+сравнения \texttt{create\_landmark\_mouth\_crops.py} использует landmarks
+лица, выравнивание по линии глаз и сглаживание геометрии между кадрами.
+\texttt{apply\_manual\_mouth\_crop\_filter.py} применяет rejection list
+к labels, сохраняя исходные файлы локально для аудита.
+
+\subsection{Split и упаковка}
+
+\texttt{create\_ml\_splits.py} создает random или speaker-based CSV. Для
+основной оценки используется speaker-based split.
+\texttt{package\_ml\_dataset.py} собирает ZIP только с клипами, на которые
+ссылаются CSV, и записывает POSIX-пути, чтобы архив работал в Linux/Colab.
+
+\section{Вход модели}
+
+Из CSV берутся \texttt{clip\_path} и \texttt{word}. OpenCV читает 24 кадра,
+каждый кадр переводится в grayscale и приводится к размеру $96 \times 96$.
+
+Один пример имеет форму:
+
+\begin{verbatim}
+[channels, frames, height, width] = [1, 24, 96, 96]
+\end{verbatim}
+
+В batch форма имеет вид:
+
+\begin{verbatim}
+[batch, channels, frames, height, width] = [B, 1, 24, 96, 96]
+\end{verbatim}
+
+Кадры не усредняются в одно число. Их порядок сохраняется, потому что
+temporal-часть модели должна видеть движение губ.
+
+\section{Модельные варианты}
+
+\subsection{Simple3DCNN}
+
+Первый baseline использует 3D-свертки, ReLU, pooling и линейный classifier.
+3D-свертка видит одновременно пространственные координаты и небольшой
+отрезок времени. На несбалансированном наборе модель схлопнулась в наиболее
+частый класс. Это полезный диагностический baseline, но не финальная модель.
+
+\subsubsection{Попытки улучшить Simple3DCNN}
+
+Были проверены два способа борьбы с дисбалансом классов.
+
+\begin{enumerate}
+\item Для weighted \texttt{CrossEntropyLoss} каждому слову задавался вес,
+обратно пропорциональный его частоте в train. В одном из запусков лучшая
+validation accuracy составила 0.1238, а к пятой эпохе упала до 0.0571,
+поэтому устойчивого улучшения не получилось.
+\item При использовании \texttt{WeightedRandomSampler} редкие слова
+выбирались чаще при формировании train-батчей. Эксперимент также не дал
+стабильного преимущества над обычным baseline.
+\end{enumerate}
+
+Эти эксперименты показали, что проблема связана не только с частотами
+классов. Простая 3D-CNN также недостаточно хорошо моделировала временную
+последовательность движения губ, поэтому далее были проверены
+\texttt{FrameCNN + BiGRU} и pretrained temporal-модели.
+
+\subsubsection{Результат Simple3DCNN baseline}
+
+Первый запуск проводился на speaker-based validation из 105 клипов и 10
+слов. Модель предсказала все 105 клипов одним наиболее частым классом,
+«есть». В validation было 32 клипа со словом «есть», поэтому accuracy
+составила $32/105=0.3048$.
+
+\begin{table}[htbp]
+\centering
+\begin{tabular}{lr}
+\toprule
+Метрика & Результат \\
+\midrule
+Accuracy & 0.3048 \\
+Macro-F1 & 0.0467 \\
+Balanced accuracy & 0.1000 \\
+Recall класса «есть» & 1.0000 \\
+Recall остальных 9 классов & 0.0000 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Accuracy 30.48\% не означает, что модель научилась читать по губам.
+Она получена за счет дисбаланса классов и стратегии «всегда предсказывать
+самое частое слово». Macro-F1 оказался низким, потому что девять из десяти
+классов получили нулевой recall и нулевой F1.
+
+\subsubsection{Диагностический эксперимент Tiny Overfit}
+
+Перед дальнейшим сравнением архитектур был проведен sanity check. Модель
+\texttt{FrameCNN+BiGRU} в grayscale обучалась на том же маленьком наборе из
+16 или 32 клипов, на котором затем измерялась memorization accuracy. Это не
+оценка обобщения и не итоговая accuracy модели. Цель --- проверить загрузку
+видео, соответствие \texttt{clip\_path -> word -> class\_id}, вычисление
+loss, backward pass и обновление параметров optimizer.
+
+В стабильной версии клипы один раз кэшировались в памяти, использовался
+\texttt{num\_workers=0}, фиксировался seed, отключались dropout,
+augmentation и weight decay, а tiny-модель использовала GroupNorm вместо
+нестабильного на маленьком batch BatchNorm. Дополнительно проверялись
+дубликаты тензоров с разными labels, нулевое движение и нулевая дисперсия
+пикселей.
+
+\begin{table}[htbp]
+\centering
+\begin{tabular}{crrl}
+\toprule
+Набор & Требование & Лучшая accuracy & Результат \\
+\midrule
+16 клипов & не менее 0.95 & 1.00, эпоха 43 & PASS \\
+32 клипа & не менее 0.90 & 1.00, эпоха 129 & PASS \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+В обоих случаях label round trip был корректным, конфликтующих дубликатов
+тензоров найдено не было, клипов с нулевым движением и нулевой дисперсией
+не было. Итоговый статус --- \texttt{PIPELINE PASS}. Это подтверждает,
+что базовый training pipeline способен обучаться и запоминать небольшой
+набор, но не доказывает хорошее распознавание новых клипов.
+
+\subsection{Frame CNN + BiGRU}
+
+\begin{verbatim}
+grayscale frames
+ -> CNN для каждого кадра
+ -> sequence [B, 24, feature_dim]
+ -> bidirectional GRU
+ -> Linear
+ -> 10 logits
+\end{verbatim}
+
+CNN извлекает визуальные признаки, а BiGRU обрабатывает последовательность
+кадров в обоих направлениях. На русском датасете обучаются temporal encoder
+и classifier.
+
+\subsection{LRW frontend + BiGRU}
+
+Используется visual frontend, предварительно обученный на LRW. Он включает
+временную 3D-свертку и ResNet18. Веса можно заморозить и обучать только
+BiGRU и classifier. Такой перенос уменьшает число обучаемых параметров.
+
+\subsection{LRW frontend + pretrained MS-TCN}
+
+Текущий лучший вариант имеет следующую структуру:
+
+\begin{verbatim}
+[B, 1, 24, 96, 96]
+ -> frozen LRW 3D Conv + ResNet18
+ -> [B, 24, 512]
+ -> frozen pretrained MS-TCN
+ -> [B, 768]
+ -> Linear(768, 10)
+ -> logits
+\end{verbatim}
+
+Обучается только линейная голова $768 \mathbin{\to} 10$. MS-TCN моделирует
+temporal context на нескольких временных масштабах и использует знания,
+полученные на большом lip-reading-датасете.
+
+\section{Target, loss и обучение}
+
+Строковое слово преобразуется в номер класса через \texttt{word\_to\_idx}.
+Например, «будет» отображается в 0. Модель возвращает 10 logits, по одному
+на каждый класс.
+
+Используется \texttt{CrossEntropyLoss}. Она сравнивает logits с целевым
+\texttt{class\_id} и штрафует модель за низкий score правильного слова.
+Для первого baseline также проверялся class-weighted вариант.
+
+Один шаг обучения имеет вид:
+
+\begin{verbatim}
+optimizer.zero_grad()
+outputs = model(batch_x)
+loss = criterion(outputs, batch_y)
+loss.backward()
+optimizer.step()
+\end{verbatim}
+
+\texttt{zero\_grad} очищает старые градиенты, forward получает предсказания,
+loss считает ошибку, backward вычисляет градиенты, а \texttt{optimizer.step}
+обновляет обучаемые параметры. В transfer MS-TCN меняются только параметры
+линейной головы.
+
+\section{Экспериментальный протокол}
+
+Для controlled comparisons использовались фиксированные split, словарь,
+preprocessing, seeds и метрики. Validation применялась для выбора варианта,
+test был отложен до финального benchmark.
+
+Сохраненные результаты включают loss, accuracy, macro-F1, balanced accuracy,
+per-class metrics, confusion matrix, prediction distribution и число
+предсказываемых классов.
+
+\section{Результаты}
+
+\subsection{Validation}
+
+\begin{table}[htbp]
+\centering
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}Xrrr}
+\toprule
+Модель & Accuracy & Macro-F1 & Balanced accuracy \\
+\midrule
+Frozen ImageNet ResNet18 & 0.1587 $\pm$ 0.0440 & 0.1416 $\pm$ 0.0458 & 0.1715 $\pm$ 0.0104 \\
+Frozen LRW frontend, old crop & 0.2857 $\pm$ 0.0530 & 0.2736 $\pm$ 0.0290 & 0.3157 $\pm$ 0.0039 \\
+Frozen LRW frontend, landmark v3 & 0.5460 $\pm$ 0.0110 & 0.5359 $\pm$ 0.0139 & 0.5787 $\pm$ 0.0108 \\
+Pretrained MS-TCN, cross-speaker & --- & \textbf{0.5832} & --- \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Horizontal flip дал небольшой положительный эффект. Temporal masking ухудшил
+macro-F1 до 0.5391, а DC-TCN получил 0.2834 против 0.3900 у BiGRU control.
+Partial fine-tuning \texttt{layer4} не дал устойчивого преимущества.
+
+\subsection{Post-hoc final test}
+
+\begin{table}[htbp]
+\centering
+\begin{tabular}{crrr}
+\toprule
+Seed & Accuracy & Macro-F1 & Balanced accuracy \\
+\midrule
+42 & 0.6280 & 0.6082 & 0.5995 \\
+123 & 0.6299 & 0.6131 & 0.6163 \\
+2026 & 0.6260 & 0.6160 & 0.6063 \\
+\textbf{Mean $\pm$ std} & \textbf{0.6280 $\pm$ 0.0020} & \textbf{0.6124 $\pm$ 0.0040} & \textbf{0.6074 $\pm$ 0.0085} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Модель предсказывала все десять классов. Majority baseline для test
+составляет 0.2441 accuracy, поэтому модель заметно выше простого выбора
+самого частого слова. Однако test имеет post-hoc статус и не должен
+использоваться для новых решений по архитектуре.
+
+\section{Обсуждение и ограничения}
+
+Главный положительный вывод состоит в том, что pretrained lip-reading
+frontend и temporal backend переносятся на русский word-level benchmark
+лучше, чем обычный ImageNet frontend и случайно обучаемая temporal-часть.
+
+Качество ограничено небольшим количеством спикеров, дисбалансом слов,
+различиями условий съемки и возможными ошибками временных границ. Результаты
+нельзя переносить на свободную русскую речь или считать промышленной системой.
+
+Поскольку final test ранее просматривался в BiGRU-эксперименте, MS-TCN test
+benchmark честно помечен как post-hoc. Для полностью независимой оценки
+будущей модели потребуется новый test с новыми спикерами, не просмотренный
+до фиксации протокола.
+
+\section{Воспроизводимость}
+
+Для фиксации результатов и воспроизводимости экспериментов в проекте
+сохранены следующие основные файлы:
+
+\begin{itemize}
+\item \texttt{scripts/README.md} --- карта скриптов и описание их статуса
+      относительно предыдущего семестра;
+\item \texttt{reports/FINAL\_MODEL\_RESULTS.md} --- подробные таблицы
+      модельных результатов;
+\item \texttt{reports/SEMESTER4\_STATUS.md} --- хронология подготовки
+      данных и экспериментов;
+\item \texttt{reports/P0\_DATA\_AUDIT.md} --- аудит split, source mapping
+      и overlap;
+\item \texttt{reports/MODEL\_IMPROVEMENT\_PLAN.md} --- план модельных
+      экспериментов и decision gates;
+\item \texttt{notebooks/lipreading\_lrw\_pretrained\_mstcn\_posthoc\_final\_test\_colab.ipynb}
+      --- notebook для финального post-hoc benchmark.
+\end{itemize}
+
+Полный архив видеоданных не хранится в репозитории GitHub. Для запуска
+используются два ZIP-архива на Google Drive:
+
+\begin{itemize}
+\item \texttt{colab\_lipreading\_dataset\_v3\_train\_val.zip};
+\item \texttt{colab\_lipreading\_final\_test\_landmark\_v3.zip}.
+\end{itemize}
+
+\section{Заключение}
+
+За четвертый семестр проект был расширен от демонстрационной подготовки
+данных до исследовательского ML-конвейера. Были подготовлены воспроизводимые
+speaker-based split, quality-control и audit-артефакты, baseline на PyTorch,
+а также проведено контролируемое сравнение нескольких архитектур и вариантов
+переноса предварительно обученных lip-reading-компонентов.
+
+Лучший вариант с pretrained MS-TCN показал macro-F1 0.5832 на
+cross-speaker validation. В post-hoc final-test benchmark средний macro-F1
+составил $0.6124 \pm 0.0040$, а средняя accuracy ---
+$0.6280 \pm 0.0020$.
+
+Для базового завершения текущего этапа дальнейшее увеличение словаря не
+требуется. Основными следующими задачами являются проверка оформления
+отчета с научным руководителем и подготовка устного объяснения конвейера
+подготовки данных, архитектуры модели, функции потерь, используемых метрик
+и ограничений эксперимента. Расширение датасета и создание нового полностью
+независимого test-набора могут рассматриваться как дальнейшее развитие работы.
+
+\end{document}

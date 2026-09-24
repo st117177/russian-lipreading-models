@@ -44,8 +44,8 @@ YouTube links
 | `get_phonewords_frames.py` | 3rd semester | Converts TextGrid word intervals to frame-level labels. | `make_words_frames_file`, `make_phonemes_frames_file`, `map_unknown_label` |
 | `batch_generate_phonewords_frames.py` | edited for 4th semester | Batch wrapper for TextGrid to `words_frames.txt`; resolves the original script and phoneme dictionary relative to the repository. | `FrameJob`, `iter_jobs`, `run_job`, `get_fps`, `pick_textgrid` |
 | `cut_ru_clips_from_words_frames.py` | edited for 4th semester | Cuts word-level clips from video using `words_frames.txt`; now shares an ffmpeg executable resolver with the batch wrapper. | `Segment`, `load_words_frames`, `build_segments`, `cut_segment`, `get_ffmpeg_exe`, `write_manifest` |
-| `batch_cut_ru_clips_from_words_frames.py` | edited for 4th semester | Batch wrapper for cutting many word clips. Adds padded/tight timing, repeatable speaker filtering, and an ffmpeg metadata fallback when OpenCV is unavailable. | `probe_video`, `load_vocab`, `pick_video` |
-| `build_labels_from_clips.py` | new for 4th semester | Builds CSV labels from the generated clip folder tree; uses the shared ffmpeg metadata fallback when `imageio-ffmpeg` is unavailable. | `collect_rows`, `get_clip_duration_sec`, `detect_source`, `write_labels` |
+| `batch_cut_ru_clips_from_words_frames.py` | new for 4th semester | Batch wrapper for cutting many word clips. Adds padded/tight timing, repeatable speaker filtering, and an ffmpeg metadata fallback when OpenCV is unavailable. | `probe_video`, `load_vocab`, `pick_video` |
+| `build_labels_from_clips.py` | 3rd semester, extended for 4th | Builds CSV labels from the generated clip folder tree; the 4th-semester version supports configurable clip roots, vocabulary output, and shared ffmpeg metadata probing. | `collect_rows`, `get_clip_duration_sec`, `detect_source`, `write_labels` |
 | `quality_check_clips.py` | new for 4th semester | Checks clip duration/readability/face detection, writes clean labels, and creates contact sheets labeled by `clip_id`. | `analyze_clip`, `detect_faces`, `write_clean_labels`, `make_contact_sheet`, `write_report` |
 | `audit_padded_overlap.py` | new for 4th semester | Read-only audit of different-word overlaps introduced by padded intervals; writes a complete pair table, a deterministic review sample, and a Markdown report. | `find_overlaps`, `select_review_sample`, `write_report` |
 | `make_overlap_review_sheets.py` | new for 4th semester | Turns the overlap review CSV into small contact sheets with several frames from both neighbouring clips. | `extract_frames`, `create_sheets` |
@@ -55,6 +55,37 @@ YouTube links
 | `create_ml_splits.py` | new for 4th semester | Creates random or speaker-based train/validation/test splits; `--only-speaker-top` avoids unused diagnostic split folders. | `top_words`, `filter_words`, `speaker_split`, `stratified_random_split`, `save_split_set` |
 | `package_ml_dataset.py` | new for 4th semester | Builds a portable ZIP with only split-referenced clips and POSIX archive paths for Colab/Kaggle; can omit test while tuning and optionally include a preprocessing tool for a Colab handoff. | `read_split_rows`, `archive_name`, `main` |
 | `validate_ru_dataset.py` | 3rd semester, edited for 4th semester | Validates dataset labels, vocabulary, and clip files; optional `--labels` and `--vocab` allow checking an alternate candidate without replacing the default files. | `read_vocab`, `validate` |
+
+## Relevance For The Final Result
+
+The scripts have different roles. Some are required to reproduce the final
+dataset, some are historical baselines, and some are only diagnostic helpers.
+The final model uses the `landmark_v3` mouth-crop branch, not every script in
+this directory at the same time.
+
+| Script or group | Semester-4 role | Used for the final result? | Study priority |
+| --- | --- | --- | --- |
+| `download_candidate_videos.py` | Downloads the raw YouTube videos and subtitles listed in the private manifest. | Yes, when rebuilding the expanded dataset; not during model training. | Understand the input CSV, output folders, and loop. |
+| `chunk_raw_videos_for_maus.py` | Splits long source videos into technical chunks for WebMAUS. | Yes, upstream of the dataset; chunks are not model examples. | Understand why chunks exist and how `ffmpeg` cuts them. |
+| `prepare_maus_inputs.py` | Old WebMAUS preparation extended with SRT parsing, rolling-subtitle cleanup, and robust ffmpeg lookup. | Yes, upstream. | Study the added blocks in detail; recall the old part. |
+| `submit_webmaus_basic.py` | Old WebMAUS request code with configurable timeout. | Yes, upstream. | Understand upload, polling, and TextGrid download. |
+| `get_phonewords_frames.py` | Unchanged 3rd-semester conversion from TextGrid to frame labels. | Yes, upstream. | Review the idea only; no second line-by-line study. |
+| `cut_ru_clips_from_words_frames.py` | Old word-level cutter with a small ffmpeg/error-handling extension. | Yes, upstream. | Understand segment construction and time conversion. |
+| `batch_cut_ru_clips_from_words_frames.py` | Applies the cutter to all chunks and controls vocabulary and padding. | Yes. | High priority: understand the loop, filters, padding, and manifest. |
+| `build_labels_from_clips.py` | Builds labels and vocabulary from the resulting clip tree. | Yes. | Understand the added parameters and CSV fields. |
+| `quality_check_clips.py` | Checks readability, duration, brightness, and face detection; writes reports and clean labels. | Yes, for dataset auditing. | High priority; know what it can and cannot verify. |
+| `create_mouth_crops.py` | Simple heuristic face-rectangle crop. | Only for an earlier baseline/comparison. | Low priority; understand the idea, not every line. |
+| `create_landmark_mouth_crops.py` | MediaPipe landmark crop with alignment, smoothing, interpolation, and diagnostics. | Yes. This is the final crop branch. | Highest preprocessing priority; study the algorithm carefully. |
+| `create_ml_splits.py` | Creates word-filtered random or speaker-independent train/validation/test splits. | Yes. | Highest priority; understand speaker leakage prevention. |
+| `package_ml_dataset.py` | Creates the portable archive used by Colab/Kaggle. | Yes for experiment delivery. | Understand path validation and ZIP creation. |
+| `audit_padded_overlap.py`, `make_overlap_review_sheets.py`, `apply_manual_mouth_crop_filter.py` | Diagnostic and selective cleanup tools. | Supporting only. | Know their purpose; postpone detailed reading. |
+| `batch_prepare_maus_inputs.py`, `batch_submit_webmaus_basic.py`, `batch_generate_phonewords_frames.py` | Automation wrappers around the old pipeline. | Used while rebuilding data, but not part of the neural network. | Understand the common batch-loop pattern. |
+
+In one sentence: `create_mouth_crops.py` is the earlier crop baseline, while
+`create_landmark_mouth_crops.py` is the crop method used by the final MS-TCN
+experiment. The old WebMAUS and word-cutting scripts remain important because
+they produce the data consumed by the landmark branch, but their core logic was
+not reinvented in semester 4.
 
 ## What Was Actually Added In Semester 4
 
