@@ -925,6 +925,45 @@ Seed & Validation accuracy & Validation macro-F1 & Balanced accuracy \\
 результат, поэтому landmark v3 был выбран для последующих экспериментов с
 temporal backend MS-TCN.
 
+\subsection{Контролируемая проверка размера mouth crop}
+
+После выбора landmark v3 был проведён отдельный controlled experiment, чтобы
+проверить, не ухудшается ли качество из-за слишком большой области вокруг губ.
+В качестве базового варианта использовался текущий crop $88\times88$. Для
+двух дополнительных вариантов из того же landmark-видео вырезалась
+центральная область $80\times80$ или $72\times72$, после чего она увеличивалась
+до одинакового модельного входа $88\times88$. Таким образом, менялся только
+размер внутреннего crop; landmark v3, LRW-pretrained frontend, BiGRU,
+\texttt{WeightedRandomSampler}, speaker-based split, функция потерь,
+оптимизатор и seed оставались одинаковыми.
+
+Эксперимент выполнен в отдельном ноутбуке
+\texttt{lipreading\_lrw\_tight\_crop\_validation\_colab.ipynb}. Были
+использованы три seed: 42, 123 и 2026. Загружались только train и validation:
+1085 и 105 клипов соответственно; test split в этот эксперимент не
+загружался и не использовался. Результаты усреднялись по трём запускам.
+
+\begin{table}[htbp]
+\centering
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}Xrrr}
+\toprule
+Crop & Accuracy & Macro-F1 & Balanced accuracy \\
+\midrule
+$88\times88$ & 0.5460 $\pm$ 0.0110 & \textbf{0.5359 $\pm$ 0.0139} & 0.5787 $\pm$ 0.0108 \\
+$80\times80$ & 0.4730 $\pm$ 0.0306 & 0.4823 $\pm$ 0.0285 & 0.5374 $\pm$ 0.0487 \\
+$72\times72$ & 0.4667 $\pm$ 0.0579 & 0.4627 $\pm$ 0.0607 & 0.5030 $\pm$ 0.0418 \\
+\bottomrule
+\end{tabularx}
+\caption{Влияние размера внутреннего mouth crop на speaker-based validation.}
+\end{table}
+
+Уменьшение crop не улучшило результат: по сравнению с $88\times88$ средний
+macro-F1 снизился на 0.0536 для $80\times80$ и на 0.0732 для $72\times72$.
+Следовательно, исходный crop $88\times88$ сохраняет больше полезной визуальной
+информации и выбран для последующих экспериментов. Этот результат является
+отрицательным, но важным: дальнейшее уменьшение области рта не следует
+представлять как улучшение модели.
+
 \subsection{LRW frontend + pretrained MS-TCN}
 
 Текущий лучший вариант имеет следующую структуру:
@@ -991,7 +1030,9 @@ per-class metrics, confusion matrix, prediction distribution и число
 \midrule
 Frozen ImageNet ResNet18 & 0.1587 $\pm$ 0.0440 & 0.1416 $\pm$ 0.0458 & 0.1715 $\pm$ 0.0104 \\
 Frozen LRW frontend, old crop & 0.2857 $\pm$ 0.0530 & 0.2736 $\pm$ 0.0290 & 0.3157 $\pm$ 0.0039 \\
-Frozen LRW frontend, landmark v3 & 0.5460 $\pm$ 0.0110 & 0.5359 $\pm$ 0.0139 & 0.5787 $\pm$ 0.0108 \\
+Frozen LRW frontend, landmark v3, crop $88\times88$ & 0.5460 $\pm$ 0.0110 & 0.5359 $\pm$ 0.0139 & 0.5787 $\pm$ 0.0108 \\
+Frozen LRW frontend, landmark v3, crop $80\times80$ & 0.4730 $\pm$ 0.0306 & 0.4823 $\pm$ 0.0285 & 0.5374 $\pm$ 0.0487 \\
+Frozen LRW frontend, landmark v3, crop $72\times72$ & 0.4667 $\pm$ 0.0579 & 0.4627 $\pm$ 0.0607 & 0.5030 $\pm$ 0.0418 \\
 Pretrained MS-TCN, cross-speaker & --- & \textbf{0.5832} & --- \\
 \bottomrule
 \end{tabularx}
