@@ -40,7 +40,3 @@ The selected MS-TCN configuration achieved **0.6124 ± 0.0040 macro-F1** and **0
 Local preprocessing dependencies are listed in [`requirements-pipeline.txt`](requirements-pipeline.txt). The notebooks document their own Colab environment and expected dataset archive layout. Because the videos and archives are not published here, the experiments are documented and scripted, but cannot be rerun from this repository alone.
 
 The pretrained visual frontend and temporal backend come from the upstream [Lipreading using Temporal Convolutional Networks](https://github.com/mpc001/Lipreading_using_Temporal_Convolutional_Networks) project; its terms apply to the downloaded weights. No pretrained weights are redistributed here.
-
-## Publication note
-
-The raw videos are not included. Some committed audit CSVs retain original video filenames/IDs and clip paths so that temporal-overlap checks can be traced back to their sources. Those identifiers may reveal which public videos were used and should not be treated as anonymized metadata.
